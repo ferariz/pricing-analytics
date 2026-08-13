@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GA4 Flat Table — Findings, Build &amp; Update Proposal</title>
+<style>
+:root{--pink:#E6485C;--charcoal:#292B2E;--cs:#4A4D52;--gm:#64748B;--gl:#94A3B8;--paper:#FAFAFB;--card:#F8FAFC;--w:#FFFFFF;--rule:rgba(41,43,46,0.10);--rs:rgba(41,43,46,0.06);--green:#15803D;--gw:#E8F5EE;--warn:#B45309;--ww:#FDF3E7;--blue:#1D4ED8;--bw:#E8EFFD;--purple:#7C3AED;--pw:#F3EEFE}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Mulish',-apple-system,sans-serif;background:var(--paper);color:var(--charcoal);line-height:1.5;-webkit-font-smoothing:antialiased}
+[data-lang="es"],[data-lang="en"]{display:none}
+body.lang-en [data-lang="en"]{display:revert}
+body.lang-es [data-lang="es"]{display:revert}
+body.lang-en span[data-lang="en"],body.lang-en strong[data-lang="en"],body.lang-en li[data-lang="en"]{display:inline}
+body.lang-es span[data-lang="es"],body.lang-es strong[data-lang="es"],body.lang-es li[data-lang="es"]{display:inline}
+.page{max-width:1100px;margin:0 auto;padding:56px 48px 80px}
+.top-bar{display:flex;justify-content:space-between;align-items:center;margin-bottom:40px;position:sticky;top:0;z-index:100;background:rgba(250,250,251,0.85);backdrop-filter:blur(16px);padding:16px 0;margin-left:-48px;margin-right:-48px;padding-left:48px;padding-right:48px;border-bottom:1px solid var(--rule)}
+.top-bar-left{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:600;letter-spacing:0.14em;text-transform:uppercase;color:var(--gm);display:flex;align-items:center;gap:10px}
+.top-bar-left .dot{width:7px;height:7px;border-radius:50%;background:var(--pink)}
+.top-bar-left .ver{font-size:9px;background:var(--pink);color:var(--w);padding:2px 6px;border-radius:3px;font-weight:700;letter-spacing:0.1em;margin-left:6px}
+.logo{display:flex;align-items:center;gap:8px;margin-right:18px;padding-right:18px;border-right:1px solid var(--rule)}
+.logo svg{width:20px;height:20px;flex-shrink:0}
+.logo span{font-family:'Mulish',sans-serif;font-size:16px;font-weight:800;color:var(--charcoal);letter-spacing:-0.01em}
+.lang-toggle{display:flex;border:1px solid var(--rule);border-radius:999px;overflow:hidden}
+.lang-toggle button{background:transparent;border:none;padding:6px 14px;font-family:inherit;font-size:11px;font-weight:700;color:var(--gm);cursor:pointer;letter-spacing:0.1em}
+.lang-toggle button.active{background:var(--charcoal);color:var(--w)}
+.head{margin-bottom:40px}
+.head-title{font-size:clamp(24px,4vw,38px);font-weight:800;letter-spacing:-0.03em;line-height:1.15;margin-bottom:16px}
+.head-title .accent{color:var(--pink)}
+.head-deck{font-size:15px;color:var(--cs);max-width:760px;line-height:1.6}
+.head-deck strong{color:var(--charcoal)}
+.sit{background:var(--w);border:1px solid var(--rule);border-radius:16px;padding:24px 28px;margin-bottom:20px}
+.sit-label{font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:700;letter-spacing:0.16em;text-transform:uppercase;color:var(--pink);margin-bottom:10px}
+.sit p{font-size:14px;line-height:1.6;color:var(--cs);margin-bottom:6px}
+.sit p:last-child{margin-bottom:0}
+.sit strong{color:var(--charcoal)}
+.callout{background:var(--card);border:1px solid var(--rule);border-left:4px solid var(--pink);border-radius:0 12px 12px 0;padding:16px 20px;margin:16px 0;font-size:13px;line-height:1.55;color:var(--cs)}
+.callout strong{color:var(--charcoal)}
+.callout.green{border-left-color:var(--green);background:var(--gw)}
+.callout.warn{border-left-color:var(--warn);background:var(--ww)}
+.callout.blue{border-left-color:var(--blue);background:var(--bw)}
+.block-label{font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:700;letter-spacing:0.16em;text-transform:uppercase;color:var(--pink);margin-bottom:6px}
+.block-sub{font-size:13px;color:var(--gm);margin-bottom:14px;line-height:1.5}
+.section{margin-bottom:44px}
+.section-num{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;color:var(--gm);margin-bottom:6px;display:block}
+.section-title{font-size:22px;font-weight:800;color:var(--charcoal);letter-spacing:-0.02em;margin-bottom:18px}
+table.m{width:100%;border-collapse:collapse;background:var(--w);border-radius:12px;overflow:hidden;border:1px solid var(--rule);font-size:13px;margin-bottom:16px}
+table.m th{font-family:'JetBrains Mono',monospace;font-size:9px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--gm);padding:11px 13px;text-align:left;background:var(--card);border-bottom:1px solid var(--rule)}
+table.m td{padding:9px 13px;border-bottom:1px solid var(--rs);color:var(--cs);vertical-align:top;line-height:1.4;font-size:12.5px}
+table.m tr:last-child td{border-bottom:none}
+table.m .mn{font-weight:700;color:var(--charcoal)}
+table.m .num{font-family:'JetBrains Mono',monospace;font-size:12px}
+table.m .tag{font-family:'JetBrains Mono',monospace;font-size:9px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;padding:2px 6px;border-radius:3px;display:inline-block;white-space:nowrap}
+table.m .tag.ok{background:var(--gw);color:var(--green)}
+table.m .tag.warn{background:var(--ww);color:var(--warn)}
+table.m .tag.info{background:var(--bw);color:var(--blue)}
+code{font-family:'JetBrains Mono',monospace;font-size:12px;background:var(--card);padding:1px 6px;border-radius:4px;color:var(--charcoal);border:1px solid var(--rule)}
+pre{background:#1E2023;color:#E8E9EB;border-radius:12px;padding:16px 18px;overflow-x:auto;font-family:'JetBrains Mono',monospace;font-size:11.5px;line-height:1.6;margin:12px 0 16px 0}
+.timeline{display:flex;flex-direction:column;gap:0;margin:16px 0}
+.tl-item{display:flex;gap:16px;padding:12px 0;border-bottom:1px solid var(--rs)}
+.tl-item:last-child{border-bottom:none}
+.tl-date{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;color:var(--pink);width:110px;flex-shrink:0;padding-top:1px}
+.tl-txt{font-size:13px;line-height:1.55;color:var(--cs)}
+.tl-txt strong{color:var(--charcoal)}
+.watch{background:var(--w);border:1px solid var(--rule);border-radius:14px;padding:18px 20px;margin-bottom:12px;display:flex;gap:14px;align-items:flex-start}
+.watch .ico{width:24px;height:24px;border-radius:50%;background:var(--ww);color:var(--warn);font-family:'JetBrains Mono',monospace;font-weight:700;font-size:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
+.watch .txt{font-size:13px;line-height:1.6;color:var(--cs)}
+.watch .txt strong{color:var(--charcoal)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px}
+.stat-card{background:var(--w);border:1px solid var(--rule);border-radius:12px;padding:16px 18px}
+.stat-card .lbl{font-family:'JetBrains Mono',monospace;font-size:9px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--gm);margin-bottom:6px}
+.stat-card .val{font-size:22px;font-weight:800;color:var(--charcoal);letter-spacing:-0.02em}
+.stat-card .sub{font-size:12px;color:var(--gm);margin-top:2px}
+.bottom{border-top:1px solid var(--rule);padding-top:24px;margin-top:20px}
+.bottom p{font-size:14px;line-height:1.6;color:var(--cs);max-width:750px;margin-bottom:8px}
+.bottom strong{color:var(--charcoal)}
+.bottom-sig{font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:600;color:var(--gm);margin-top:16px}
+.bottom-sig .pink{color:var(--pink)}
+.query-btn{display:inline-flex;align-items:center;gap:6px;background:var(--charcoal);color:var(--w);border:none;border-radius:8px;padding:9px 16px;font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;letter-spacing:0.04em;cursor:pointer;margin-top:4px}
+.query-btn:hover{background:var(--pink)}
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(41,43,46,0.6);z-index:1000;align-items:center;justify-content:center;padding:24px}
+.modal-overlay.open{display:flex}
+.modal-box{background:#1E2023;border-radius:16px;max-width:900px;width:100%;max-height:82vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 24px 60px rgba(0,0,0,0.4)}
+.modal-head{display:flex;justify-content:space-between;align-items:center;padding:16px 20px;border-bottom:1px solid rgba(255,255,255,0.08)}
+.modal-head span{font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700;color:#E8E9EB;letter-spacing:0.04em}
+.modal-close{background:none;border:none;color:#94A3B8;font-size:20px;cursor:pointer;line-height:1;padding:2px 8px}
+.modal-close:hover{color:#fff}
+.modal-body{padding:18px 20px;overflow:auto}
+.modal-body pre{margin:0;background:transparent;padding:0}
+@media(max-width:800px){.page{padding:28px 18px 48px}.top-bar{margin-left:-18px;margin-right:-18px;padding-left:18px;padding-right:18px}.grid2{grid-template-columns:1fr}.tl-item{flex-direction:column;gap:4px}.tl-date{width:auto}}
+</style>
+</head>
+<body class="lang-es">
+<div class="page">
+
+<div class="top-bar">
+  <div class="top-bar-left">
+    <span class="logo">
+      <svg style="height:24px;width:auto" viewBox="0 0 104 32" fill="none" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M13.1151 13.519C17.302 14.3547 20.3139 13.9602 22.2514 12.3347V4.20114H25.8592V25.535H22.2514V16.1184C20.7622 16.8201 19.0142 17.1731 16.9913 17.1731C15.7959 17.1731 14.5039 17.0492 13.1151 16.8046V25.535H9.50866V15.9599C9.03462 15.8241 8.55231 15.6785 8.0594 15.5198C5.47279 14.6879 2.15403 15.0945 0.723524 15.7075L0 12.5309C2.07157 11.8148 5.76141 11.3847 8.9963 12.4255C9.16891 12.481 9.33908 12.534 9.50866 12.5865V4.20114H13.1151V13.519Z" fill="#E6485C"/></svg>
+    </span>
+    <span class="dot"></span> Pricing → Data · GA4 · Ago 2026 <span class="ver">V1</span>
+  </div>
+  <div class="lang-toggle"><button id="btn-es" class="active">ES</button><button id="btn-en">EN</button></div>
+</div>
+
+<div class="head">
+  <h1 class="head-title">
+    <span data-lang="es">GA4 Flat Table: <span class="accent">hallazgos, construcción y propuesta de actualización</span></span>
+    <span data-lang="en">GA4 Flat Table: <span class="accent">findings, build, and update proposal</span></span>
+  </h1>
+  <p class="head-deck">
+    <span data-lang="es">Este documento resume la investigación completa sobre <code>ga4_esim_flat_table</code>: qué encontramos antes de construir, cómo se construyó la versión de prueba (<code>ga4_esim_flat_table_test</code>), la propuesta para actualizarla en producción, y qué puntos conviene vigilar hacia adelante.</span>
+    <span data-lang="en">This document summarizes the full investigation behind <code>ga4_esim_flat_table</code>: what we found before building anything, how the test version (<code>ga4_esim_flat_table_test</code>) was built, the proposal to update it in production, and what to keep an eye on going forward.</span>
+  </p>
+</div>
+
+<div class="sit">
+  <div class="sit-label"><span data-lang="es">Situación de partida</span><span data-lang="en">Starting situation</span></div>
+  <p><span data-lang="es"><strong>Tabla en creación, sin scheduled job:</strong> datos solo hasta 2026-04-01, sin ninguna scheduled query manteniéndola todavía.</span><span data-lang="en"><strong>Table in creation, no scheduled job:</strong> data only up to 2026-04-01, with no scheduled query maintaining it yet.</span></p>
+</div>
+
+<!-- SECCION 1: FINDINGS -->
+<div class="section">
+  <span class="section-num"><span data-lang="es">Sección 1</span><span data-lang="en">Section 1</span></span>
+  <h2 class="section-title"><span data-lang="es">Findings antes de construir</span><span data-lang="en">Findings before building</span></h2>
+
+  <div class="block-label"><span data-lang="es">1.1 — Fecha de arranque</span><span data-lang="en">1.1 — Start date</span></div>
+  <p style="font-size:13px;color:var(--cs);line-height:1.6;margin-bottom:12px;">
+    <span data-lang="es">La hipótesis inicial (límite del free tier de GA4) no se sostuvo. Hay dos datasets de export distintos, no uno.</span>
+    <span data-lang="en">The initial hypothesis (GA4 free-tier export limit) didn't hold up. There are two separate export datasets, not one.</span>
+  </p>
+  <table class="m">
+    <thead><tr><th><span data-lang="es">Dataset</span><span data-lang="en">Dataset</span></th><th><span data-lang="es">Qué se encontró</span><span data-lang="en">What we found</span></th></tr></thead>
+    <tbody>
+      <tr><td class="mn">ga4_big_query_export <span data-lang="es">(histórico)</span><span data-lang="en">(historical)</span></td><td><span data-lang="es">Lo que parecían "5 ciclos de throttling" era en realidad un backfill hecho por lotes en una sola sentada (16 de marzo) — confirmado mirando <code>created_time</code>/<code>last_modified_time</code> de los shards.</span><span data-lang="en">What looked like "5 throttling cycles" was actually a batch backfill done in one sitting (March 16) — confirmed by looking at shard <code>created_time</code>/<code>last_modified_time</code>.</span></td></tr>
+      <tr><td class="mn">analytics_259130497 <span data-lang="es">(nuevo)</span><span data-lang="en">(new)</span></td><td><span data-lang="es">Dataset creado el 25/03/2026 — migración de propiedad de GA4. 21-23/03: volumen mínimo (backfill parcial, no representativo). Desde el 24/03: volumen estable, ~10-11M filas/día.</span><span data-lang="en">Dataset created on 2026-03-25 — GA4 property migration. Mar 21-23: minimal volume (partial backfill, not representative). From Mar 24 onward: stable volume, ~10-11M rows/day.</span></td></tr>
+    </tbody>
+  </table>
+  <div class="callout green"><span data-lang="es"><strong>Fecha de arranque validada: 2026-03-24.</strong> Dos anomalías anotadas sin causa cerrada, no bloquean el trabajo: un pico de +60% el 27/03 sin explicación, y un hueco de datos entre el 15 y el 20 de marzo (información perdida, sin arreglo posible).</span><span data-lang="en"><strong>Validated start date: 2026-03-24.</strong> Two anomalies noted without a closed explanation, non-blocking: a +60% spike on Mar 27 with no identified cause, and a data gap between Mar 15-20 (lost data, unrecoverable).</span></div>
+
+  <div class="block-label" style="margin-top:28px;"><span data-lang="es">1.2 — Duplicados</span><span data-lang="en">1.2 — Duplicates</span></div>
+  <p style="font-size:13px;color:var(--cs);line-height:1.6;margin-bottom:12px;">
+    <span data-lang="es">Punto de partida: la clave <code>(user_pseudo_id, event_timestamp, item_id)</code> daba 9% de filas "duplicadas" en el día de prueba. Se investigaron las causas una por una.</span>
+    <span data-lang="en">Starting point: the key <code>(user_pseudo_id, event_timestamp, item_id)</code> showed 9% "duplicate" rows in the test day. Root causes were investigated one by one.</span>
+  </p>
+  <table class="m">
+    <thead><tr><th style="width:170px;"><span data-lang="es">Causa</span><span data-lang="en">Cause</span></th><th><span data-lang="es">Detalle</span><span data-lang="en">Detail</span></th><th style="width:90px;"><span data-lang="es">Filas</span><span data-lang="en">Rows</span></th></tr></thead>
+    <tbody>
+      <tr><td class="mn"><span data-lang="es">Widget de mensajería</span><span data-lang="en">Messaging widget</span></td><td><span data-lang="es">Eventos ajenos al e-commerce (<em>Opened Messenger</em>, <em>Viewed Message</em>, etc.) con <code>user_pseudo_id</code> NULL — rompen cualquier dedup por usuario, porque <code>NULL = NULL</code> nunca hace match.</span><span data-lang="en">Non-ecommerce events (<em>Opened Messenger</em>, <em>Viewed Message</em>, etc.) with NULL <code>user_pseudo_id</code> — break any user-based dedup, since <code>NULL = NULL</code> never matches.</span></td><td class="num">531.505</td></tr>
+      <tr><td class="mn"><span data-lang="es">Duplicado exacto</span><span data-lang="en">Exact duplicate</span></td><td><span data-lang="es">Mismo evento exportado dos veces por GA4, sin ninguna diferencia en ningún campo.</span><span data-lang="en">Same event exported twice by GA4, with no difference in any field.</span></td><td class="num">58.073 <span data-lang="es">grupos</span><span data-lang="en">groups</span></td></tr>
+      <tr><td class="mn"><span data-lang="es">Metadata secundaria</span><span data-lang="en">Secondary metadata</span></td><td><span data-lang="es">Mismo evento de negocio, pero <code>engagement_time_msec</code> distinto entre copias (79.254 casos) — un contador que GA4 actualiza, no una señal de eventos distintos. En menor medida, <code>country</code> en blanco en una copia y resuelto en otra.</span><span data-lang="en">Same business event, but <code>engagement_time_msec</code> differs between copies (79,254 cases) — a counter GA4 updates, not a sign of distinct events. To a lesser extent, <code>country</code> blank in one copy and resolved in the other.</span></td><td class="num">86.714 <span data-lang="es">grupos</span><span data-lang="en">groups</span></td></tr>
+    </tbody>
+  </table>
+  <div class="callout warn">
+    <span data-lang="es"><strong>Decisión que casi se toma mal:</strong> la tentación era agregar <code>engagement_time_msec</code> o <code>country</code> a la clave para "diferenciar" estas filas. Habría sido un error — separaría copias del mismo evento en filas distintas, reintroduciendo la duplicación. La clave <code>(user_pseudo_id, event_timestamp, event_name, item_id)</code> es correcta tal cual; el fix está en el desempate, no en la clave.</span>
+    <span data-lang="en"><strong>A decision almost made wrong:</strong> the temptation was to add <code>engagement_time_msec</code> or <code>country</code> to the key to "differentiate" these rows. That would have been a mistake — it would split copies of the same event into different rows, reintroducing the duplication. The key <code>(user_pseudo_id, event_timestamp, event_name, item_id)</code> is correct as-is; the fix belongs in the tie-break, not the key.</span>
+  </div>
+
+  <div class="block-label" style="margin-top:28px;"><span data-lang="es">1.3 — Caída de destinos distintos (item_id)</span><span data-lang="en">1.3 — Drop in distinct destinations (item_id)</span></div>
+  <p style="font-size:13px;color:var(--cs);line-height:1.6;margin-bottom:12px;">
+    <span data-lang="es">Al validar el backfill completo, <code>item_id</code> distinto cayó de 13.553 (abril) a 1.086 (agosto) — una baja de 92%. Se investigó antes de asumir que era un problema.</span>
+    <span data-lang="en">While validating the full backfill, distinct <code>item_id</code> dropped from 13,553 (April) to 1,086 (August) — a 92% decline. This was investigated before assuming it was a problem.</span>
+  </p>
+  <table class="m">
+    <thead><tr><th><span data-lang="es">Mes</span><span data-lang="en">Month</span></th><th><span data-lang="es">Destinos distintos</span><span data-lang="en">Distinct destinations</span></th><th><span data-lang="es">% eventos con item_id</span><span data-lang="en">% events with item_id</span></th></tr></thead>
+    <tbody>
+      <tr><td>2026-03</td><td class="num">9.191</td><td class="num">9,0%</td></tr>
+      <tr><td>2026-04</td><td class="num">13.553</td><td class="num">9,9%</td></tr>
+      <tr><td>2026-05</td><td class="num">12.983</td><td class="num">30,9%</td></tr>
+      <tr><td>2026-06</td><td class="num">6.292</td><td class="num">39,7%</td></tr>
+      <tr><td>2026-07</td><td class="num">1.887</td><td class="num">31,7%</td></tr>
+      <tr><td>2026-08</td><td class="num">1.086</td><td class="num">35,5%</td></tr>
+    </tbody>
+  </table>
+  <div class="callout green">
+    <span data-lang="es"><strong>Conclusión: no es un problema, es una historia coherente.</strong> El % de eventos con <code>item_id</code> poblado <em>subió</em> (9% → ~35%), no bajó — descarta que el tracking se esté rompiendo. La caída en cantidad de valores distintos se explica por dos cosas positivas: (1) limpieza de valores basura/tests (los que no matcheaban el patrón <code>esim-*</code> cayeron de ~1.600 a ~13), y (2) simplificación de combos multi-país (ej. <code>japon-corea</code>, <code>china-hong-kong-macau</code>) que multiplicaban artificialmente la cantidad de slugs distintos con volumen bajo cada uno. Los top-15 destinos de agosto son limpios y de alto volumen — sin basura visible.</span>
+    <span data-lang="en"><strong>Conclusion: not a problem, a coherent story.</strong> The % of events with <code>item_id</code> populated <em>rose</em> (9% → ~35%), not dropped — rules out tracking breaking. The drop in distinct value count is explained by two positive things: (1) cleanup of junk/test values (those not matching the <code>esim-*</code> pattern dropped from ~1,600 to ~13), and (2) simplification of multi-country combos (e.g. <code>japon-corea</code>, <code>china-hong-kong-macau</code>) that artificially multiplied the count of distinct low-volume slugs. August's top-15 destinations are clean and high-volume — no visible junk.</span>
+  </div>
+</div>
+
+<!-- SECCION 2: CONSTRUCCION -->
+<div class="section">
+  <span class="section-num"><span data-lang="es">Sección 2</span><span data-lang="en">Section 2</span></span>
+  <h2 class="section-title"><span data-lang="es">Construcción de la tabla de prueba</span><span data-lang="en">Test table build</span></h2>
+
+  <p style="font-size:13px;color:var(--cs);line-height:1.6;margin-bottom:16px;">
+    <span data-lang="es">Se construyó <code>ga4_esim_flat_table_test</code> en dos pasos — corto primero, completo después — en vez de comprometerse directo a los ~140 días.</span>
+    <span data-lang="en">We built <code>ga4_esim_flat_table_test</code> in two steps — short first, full afterward — instead of committing directly to the full ~140-day range.</span>
+  </p>
+
+  <div class="grid2">
+    <div class="stat-card">
+      <div class="lbl"><span data-lang="es">Backfill corto (validación)</span><span data-lang="en">Short backfill (validation)</span></div>
+      <div class="val">7 <span data-lang="es">días</span><span data-lang="en">days</span></div>
+      <div class="sub"><span data-lang="es">Volumen sano, sin saltos raros entre días</span><span data-lang="en">Healthy volume, no odd jumps between days</span></div>
+    </div>
+    <div class="stat-card">
+      <div class="lbl"><span data-lang="es">Backfill completo</span><span data-lang="en">Full backfill</span></div>
+      <div class="val">2026-03-24 → <span data-lang="es">hoy</span><span data-lang="en">today</span></div>
+      <div class="sub">121.188.748 <span data-lang="es">filas al momento de escribir</span><span data-lang="en">rows as of writing</span></div>
+    </div>
+  </div>
+
+  <div class="block-label"><span data-lang="es">Filtro y deduplicación aplicados</span><span data-lang="en">Filter and dedup applied</span></div>
+  <pre>WHERE user_pseudo_id IS NOT NULL
+QUALIFY ROW_NUMBER() OVER (
+  PARTITION BY user_pseudo_id, event_timestamp, event_name, item_id
+  ORDER BY (country = '' OR country IS NULL) ASC,
+           engagement_time_msec DESC
+) = 1</pre>
+
+  <button class="query-btn" onclick="document.getElementById('modal-backfill').classList.add('open')">
+    <span data-lang="es">▶ Ver query completa de backfill</span><span data-lang="en">▶ View full backfill query</span>
+  </button>
+
+  <div class="callout blue" style="margin-top:16px;">
+    <span data-lang="es"><strong>Validación de cobertura mensual (backfill completo):</strong> todos los meses tienen la cantidad de días esperada (30-31, o los correspondientes al mes parcial) — sin huecos nuevos más allá del ya conocido de marzo.</span>
+    <span data-lang="en"><strong>Monthly coverage validation (full backfill):</strong> every month has the expected number of days (30-31, or the partial-month equivalent) — no new gaps beyond the already-known March one.</span>
+  </div>
+</div>
+
+<!-- SECCION 3: PROPUESTA DE ACTUALIZACION -->
+<div class="section">
+  <span class="section-num"><span data-lang="es">Sección 3</span><span data-lang="en">Section 3</span></span>
+  <h2 class="section-title"><span data-lang="es">Propuesta de actualización a producción</span><span data-lang="en">Production update proposal</span></h2>
+
+  <div class="timeline">
+    <div class="tl-item">
+      <div class="tl-date"><span data-lang="es">Paso 1</span><span data-lang="en">Step 1</span></div>
+      <div class="tl-txt"><span data-lang="es"><strong>Validar en staging</strong> — hecho en este documento, sobre <code>ga4_esim_flat_table_test</code>, no sobre el nombre real.</span><span data-lang="en"><strong>Validate in staging</strong> — done in this document, on <code>ga4_esim_flat_table_test</code>, not the real table name.</span></div>
+    </div>
+    <div class="tl-item">
+      <div class="tl-date"><span data-lang="es">Paso 2</span><span data-lang="en">Step 2</span></div>
+      <div class="tl-txt"><span data-lang="es"><strong>Aviso al equipo</strong> antes de tocar la tabla real — por si hay consumidores que no aparecen en las scheduled queries de BigQuery (ej. un DAG de Composer).</span><span data-lang="en"><strong>Team heads-up</strong> before touching the real table — in case there are consumers not visible in BigQuery's scheduled queries (e.g. a Composer DAG).</span></div>
+    </div>
+    <div class="tl-item">
+      <div class="tl-date"><span data-lang="es">Paso 3</span><span data-lang="en">Step 3</span></div>
+      <div class="tl-txt"><span data-lang="es"><strong>Swap</strong> — <code>CREATE OR REPLACE TABLE ga4_esim_flat_table AS SELECT * FROM ..._test</code>.</span><span data-lang="en"><strong>Swap</strong> — <code>CREATE OR REPLACE TABLE ga4_esim_flat_table AS SELECT * FROM ..._test</code>.</span></div>
+    </div>
+    <div class="tl-item">
+      <div class="tl-date"><span data-lang="es">Paso 4</span><span data-lang="en">Step 4</span></div>
+      <div class="tl-txt"><span data-lang="es"><strong>Scheduled query diaria</strong> — <code>MERGE</code> con lookback de 5 días (no <code>INSERT</code> simple). Confirmado empíricamente que GA4 sigue reescribiendo shards hasta ~3 días después de creados; el lookback deja margen.</span><span data-lang="en"><strong>Daily scheduled query</strong> — <code>MERGE</code> with a 5-day lookback (not a plain <code>INSERT</code>). Empirically confirmed GA4 keeps rewriting shards up to ~3 days after creation; the lookback leaves margin.</span></div>
+    </div>
+  </div>
+
+  <button class="query-btn" onclick="document.getElementById('modal-merge').classList.add('open')">
+    <span data-lang="es">▶ Ver query de actualización (MERGE diaria)</span><span data-lang="en">▶ View update query (daily MERGE)</span>
+  </button>
+
+  <div class="callout warn" style="margin-top:14px;">
+    <span data-lang="es"><strong>Sin validar todavía.</strong> A diferencia del backfill (corrido en dos pasos y verificado con números reales), esta query de <code>MERGE</code> diaria fue diseñada y revisada, pero nunca corrida — ni siquiera con un dry-run. Antes de programarla como scheduled query, hay que probarla al menos una vez contra los últimos días reales y confirmar que el resultado es el esperado.</span>
+    <span data-lang="en"><strong>Not yet validated.</strong> Unlike the backfill (run in two steps and verified with real numbers), this daily <code>MERGE</code> query was designed and reviewed, but never actually run — not even a dry-run. Before scheduling it in production, it needs to be tested at least once against the last few real days and confirmed to behave as expected.</span>
+  </div>
+
+  <div class="grid2" style="margin-top:16px;">
+    <div class="stat-card">
+      <div class="lbl"><span data-lang="es">Costo backfill (una vez)</span><span data-lang="en">Backfill cost (one-time)</span></div>
+      <div class="val">~1 TB</div>
+      <div class="sub"><span data-lang="es">Confirmado on-demand — costo bajo</span><span data-lang="en">Confirmed on-demand — low cost</span></div>
+    </div>
+    <div class="stat-card">
+      <div class="lbl"><span data-lang="es">Costo diaria (recurrente)</span><span data-lang="en">Daily cost (recurring)</span></div>
+      <div class="val">~50 GB/<span data-lang="es">día</span><span data-lang="en">day</span></div>
+      <div class="sub">≈ 1,5 TB/<span data-lang="es">mes</span><span data-lang="en">month</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- SECCION 4: QUE VIGILAR -->
+<div class="section">
+  <span class="section-num"><span data-lang="es">Sección 4</span><span data-lang="en">Section 4</span></span>
+  <h2 class="section-title"><span data-lang="es">Qué vigilar hacia adelante</span><span data-lang="en">What to watch going forward</span></h2>
+
+  <div class="watch">
+    <div class="ico">1</div>
+    <div class="txt"><span data-lang="es"><strong>Quiebre mayo→junio (-52% de destinos distintos, de golpe, no gradual).</strong> Coincide en ventana de tiempo con la migración Trip/data_roaming del catálogo PIM. Podría no ser casualidad — vale la pena preguntarlo, no investigarlo a fondo por ahora.</span><span data-lang="en"><strong>May→June break (-52% in distinct destinations, sudden, not gradual).</strong> Coincides in timing with the Trip/data_roaming PIM catalog migration. May not be a coincidence — worth asking about, not deep-investigating for now.</span></div>
+  </div>
+  <div class="watch">
+    <div class="ico">2</div>
+    <div class="txt"><span data-lang="es"><strong>Combos multi-país y valores legacy</strong> (<code>japon-corea</code>, <code>china-hong-kong-macau</code>, <code>world</code>, <code>plan-unlimited-month</code>) probablemente no matcheen limpio contra el catálogo PIM actual. El bucket "Sin clasificar" ya contemplado en el diseño del mart cubre esto — no descartar esas filas silenciosamente.</span><span data-lang="en"><strong>Multi-country combos and legacy values</strong> (<code>japon-corea</code>, <code>china-hong-kong-macau</code>, <code>world</code>, <code>plan-unlimited-month</code>) will likely not cleanly match the current PIM catalog. The "Unclassified" bucket already planned for the mart covers this — don't silently drop those rows.</span></div>
+  </div>
+  <div class="watch">
+    <div class="ico">3</div>
+    <div class="txt"><span data-lang="es"><strong>Cobertura de <code>item_id</code> todavía parcial (~35% de eventos).</strong> Es normal — muchos eventos (page_view genérico, session_start) no llevan producto — pero vale la pena confirmar que no sigue subiendo o bajando de forma inesperada en los próximos meses.</span><span data-lang="en"><strong><code>item_id</code> coverage is still partial (~35% of events).</strong> This is expected — many events (generic page_view, session_start) carry no product — but worth confirming it doesn't move unexpectedly in the coming months.</span></div>
+  </div>
+  <div class="watch">
+    <div class="ico">4</div>
+    <div class="txt"><span data-lang="es"><strong>Días parciales en los bordes de cualquier rango de backfill.</strong> <code>event_date</code> se calcula desde <code>event_timestamp</code>, no desde el shard — un día en el borde puede aparecer con volumen bajo sin que sea un problema real (confirmado en el 05/08 del backfill corto).</span><span data-lang="en"><strong>Partial days at the edges of any backfill range.</strong> <code>event_date</code> is computed from <code>event_timestamp</code>, not from the shard — an edge day can show low volume without being a real issue (confirmed on Aug 5 in the short backfill).</span></div>
+  </div>
+  <div class="watch">
+    <div class="ico">5</div>
+    <div class="txt"><span data-lang="es"><strong>Pico sin explicar del 27/03 (+60%) y hueco del 15-20/03.</strong> Documentados, no bloquean el trabajo, pero si en algún momento un número de marzo se ve raro, revisar acá primero antes de asumir un bug nuevo.</span><span data-lang="en"><strong>Unexplained Mar 27 spike (+60%) and Mar 15-20 gap.</strong> Documented, non-blocking, but if a March number ever looks odd, check here first before assuming a new bug.</span></div>
+  </div>
+</div>
+
+<div class="bottom">
+  <p><span data-lang="es"><strong>Estado actual:</strong> <code>ga4_esim_flat_table_test</code> construida y validada sobre el rango completo (2026-03-24 a hoy). Pendiente: aviso al equipo antes del swap a la tabla real, y programar la scheduled query diaria.</span><span data-lang="en"><strong>Current status:</strong> <code>ga4_esim_flat_table_test</code> built and validated over the full range (2026-03-24 to today). Pending: team heads-up before swapping to the real table, and scheduling the daily query.</span></p>
+  <div class="bottom-sig">— Fernando Arizmendi <span class="pink">·</span> Pricing</div>
+</div>
+
+</div>
+
+<!-- MODAL: BACKFILL QUERY -->
+<div class="modal-overlay" id="modal-backfill">
+  <div class="modal-box">
+    <div class="modal-head">
+      <span><span data-lang="es">QUERY — BACKFILL COMPLETO (ga4_esim_flat_table_test)</span><span data-lang="en">QUERY — FULL BACKFILL (ga4_esim_flat_table_test)</span></span>
+      <button class="modal-close" onclick="document.getElementById('modal-backfill').classList.remove('open')">×</button>
+    </div>
+    <div class="modal-body"><pre>CREATE OR REPLACE TABLE `hly--data--digital--d3.ga4_flat_tables.ga4_esim_flat_table_test`
+PARTITION BY event_date AS
+SELECT * EXCEPT(rn) FROM (
+  SELECT
+    user_pseudo_id,
+    event_timestamp,
+    DATE(TIMESTAMP_MICROS(event_timestamp)) AS event_date,
+    (SELECT value.int_value FROM UNNEST(event_params) WHERE key = 'ga_session_id') AS session_id,
+    event_name,
+    geo.country AS country,
+    platform,
+    traffic_source.source AS source,
+    traffic_source.medium AS medium,
+    traffic_source.name AS campaign,
+    (SELECT value.string_value FROM UNNEST(event_params) WHERE key = 'page_location') AS page_location,
+    (SELECT value.string_value FROM UNNEST(event_params) WHERE key = 'page_referrer') AS page_referrer,
+    (SELECT value.int_value FROM UNNEST(event_params) WHERE key = 'engagement_time_msec') AS engagement_time_msec,
+    (SELECT value.double_value FROM UNNEST(event_params) WHERE key = 'value') AS value,
+    (SELECT value.string_value FROM UNNEST(event_params) WHERE key = 'transaction_id') AS transaction_id,
+    (SELECT value.string_value FROM UNNEST(event_params) WHERE key = 'variant') AS experiment_variant,
+    (SELECT value.string_value FROM UNNEST(event_params) WHERE key = 'audience_name') AS audience_name,
+    event_dimensions.hostname AS hostname,
+    item.item_id AS item_id,
+    item.item_name AS item_name,
+    item.item_category AS item_category,
+    item.item_category2 AS item_category2,
+    item.item_brand AS item_brand,
+    item.item_variant AS item_variant,
+    item.price AS item_price,
+    item.quantity AS item_quantity,
+    item.item_revenue AS item_revenue,
+    item.coupon AS item_coupon,
+    item.item_list_name AS item_list_name,
+    item.promotion_name AS item_promotion_name,
+    ROW_NUMBER() OVER (
+      PARTITION BY user_pseudo_id, event_timestamp, event_name, item.item_id
+      ORDER BY
+        (geo.country = '' OR geo.country IS NULL) ASC,
+        (SELECT value.int_value FROM UNNEST(event_params) WHERE key = 'engagement_time_msec') DESC
+    ) AS rn
+  FROM `hly--data--digital--d3.analytics_259130497.events_*`
+  LEFT JOIN UNNEST(items) AS item
+  WHERE _TABLE_SUFFIX BETWEEN '20260324'
+    AND FORMAT_DATE('%Y%m%d', DATE_SUB(CURRENT_DATE(), INTERVAL 1 DAY))
+    AND user_pseudo_id IS NOT NULL
+)
+WHERE rn = 1;</pre></div>
+  </div>
+</div>
+
+<!-- MODAL: UPDATE (MERGE) QUERY -->
+<div class="modal-overlay" id="modal-merge">
+  <div class="modal-box">
+    <div class="modal-head">
+      <span><span data-lang="es">QUERY — ACTUALIZACIÓN DIARIA (MERGE, lookback 5 días)</span><span data-lang="en">QUERY — DAILY UPDATE (MERGE, 5-day lookback)</span></span>
+      <button class="modal-close" onclick="document.getElementById('modal-merge').classList.remove('open')">×</button>
+    </div>
+    <div class="modal-body"><pre>MERGE `hly--data--digital--d3.ga4_flat_tables.ga4_esim_flat_table` T
+USING (
+  SELECT
+    user_pseudo_id,
+    event_timestamp,
+    DATE(TIMESTAMP_MICROS(event_timestamp)) AS event_date,
+    (SELECT value.int_value FROM UNNEST(event_params) WHERE key = 'ga_session_id') AS session_id,
+    event_name,
+    geo.country AS country,
+    platform,
+    traffic_source.source AS source,
+    traffic_source.medium AS medium,
+    traffic_source.name AS campaign,
+    (SELECT value.string_value FROM UNNEST(event_params) WHERE key = 'page_location') AS page_location,
+    (SELECT value.string_value FROM UNNEST(event_params) WHERE key = 'page_referrer') AS page_referrer,
+    (SELECT value.int_value FROM UNNEST(event_params) WHERE key = 'engagement_time_msec') AS engagement_time_msec,
+    (SELECT value.double_value FROM UNNEST(event_params) WHERE key = 'value') AS value,
+    (SELECT value.string_value FROM UNNEST(event_params) WHERE key = 'transaction_id') AS transaction_id,
+    (SELECT value.string_value FROM UNNEST(event_params) WHERE key = 'variant') AS experiment_variant,
+    (SELECT value.string_value FROM UNNEST(event_params) WHERE key = 'audience_name') AS audience_name,
+    event_dimensions.hostname AS hostname,
+    item.item_id AS item_id,
+    item.item_name AS item_name,
+    item.item_category AS item_category,
+    item.item_category2 AS item_category2,
+    item.item_brand AS item_brand,
+    item.item_variant AS item_variant,
+    item.price AS item_price,
+    item.quantity AS item_quantity,
+    item.item_revenue AS item_revenue,
+    item.coupon AS item_coupon,
+    item.item_list_name AS item_list_name,
+    item.promotion_name AS item_promotion_name
+  FROM `hly--data--digital--d3.analytics_259130497.events_*`
+  LEFT JOIN UNNEST(items) AS item
+  WHERE _TABLE_SUFFIX BETWEEN FORMAT_DATE('%Y%m%d', DATE_SUB(CURRENT_DATE(), INTERVAL 5 DAY))
+    AND FORMAT_DATE('%Y%m%d', DATE_SUB(CURRENT_DATE(), INTERVAL 1 DAY))
+    AND user_pseudo_id IS NOT NULL
+  QUALIFY ROW_NUMBER() OVER (
+    PARTITION BY user_pseudo_id, event_timestamp, event_name, item.item_id
+    ORDER BY
+      (geo.country = '' OR geo.country IS NULL) ASC,
+      (SELECT value.int_value FROM UNNEST(event_params) WHERE key = 'engagement_time_msec') DESC
+  ) = 1
+) S
+ON T.user_pseudo_id = S.user_pseudo_id
+  AND T.event_timestamp = S.event_timestamp
+  AND T.event_name = S.event_name
+  AND COALESCE(T.item_id, '') = COALESCE(S.item_id, '')
+  AND T.event_date BETWEEN DATE_SUB(CURRENT_DATE(), INTERVAL 5 DAY) AND DATE_SUB(CURRENT_DATE(), INTERVAL 1 DAY)
+WHEN MATCHED THEN
+  UPDATE SET
+    session_id = S.session_id, event_name = S.event_name, country = S.country,
+    platform = S.platform, source = S.source, medium = S.medium, campaign = S.campaign,
+    page_location = S.page_location, page_referrer = S.page_referrer,
+    engagement_time_msec = S.engagement_time_msec, value = S.value,
+    transaction_id = S.transaction_id, experiment_variant = S.experiment_variant,
+    audience_name = S.audience_name, hostname = S.hostname,
+    item_name = S.item_name, item_category = S.item_category, item_category2 = S.item_category2,
+    item_brand = S.item_brand, item_variant = S.item_variant, item_price = S.item_price,
+    item_quantity = S.item_quantity, item_revenue = S.item_revenue, item_coupon = S.item_coupon,
+    item_list_name = S.item_list_name, item_promotion_name = S.item_promotion_name
+WHEN NOT MATCHED THEN
+  INSERT ROW;</pre></div>
+  </div>
+</div>
+
+<script>
+document.getElementById('btn-es').addEventListener('click',()=>{document.body.classList.remove('lang-en');document.body.classList.add('lang-es');document.getElementById('btn-es').classList.add('active');document.getElementById('btn-en').classList.remove('active')});
+document.getElementById('btn-en').addEventListener('click',()=>{document.body.classList.remove('lang-es');document.body.classList.add('lang-en');document.getElementById('btn-en').classList.add('active');document.getElementById('btn-es').classList.remove('active')});
+document.querySelectorAll('.modal-overlay').forEach(function(overlay){
+  overlay.addEventListener('click', function(e){ if(e.target === overlay) overlay.classList.remove('open'); });
+});
+document.addEventListener('keydown', function(e){
+  if(e.key === 'Escape') document.querySelectorAll('.modal-overlay.open').forEach(function(o){ o.classList.remove('open'); });
+});
+</script>
+</body>
+</html>
