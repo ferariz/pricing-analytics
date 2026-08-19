@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Costos en NULL — Investigación</title>
+<style>
+:root{--pink:#E6485C;--charcoal:#292B2E;--cs:#4A4D52;--gm:#64748B;--gl:#94A3B8;--paper:#FAFAFB;--card:#F8FAFC;--w:#FFFFFF;--rule:rgba(41,43,46,0.10);--rs:rgba(41,43,46,0.06);--green:#15803D;--gw:#E8F5EE;--warn:#B45309;--ww:#FDF3E7;--blue:#1D4ED8;--bw:#E8EFFD;--purple:#7C3AED;--pw:#F3EEFE}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Mulish',-apple-system,sans-serif;background:var(--paper);color:var(--charcoal);line-height:1.5;-webkit-font-smoothing:antialiased}
+.page{max-width:1100px;margin:0 auto;padding:40px 32px 80px}
+.top-bar{display:flex;align-items:center;gap:14px;margin-bottom:32px;position:sticky;top:0;z-index:100;background:rgba(250,250,251,0.9);backdrop-filter:blur(16px);padding:16px 0;border-bottom:1px solid var(--rule)}
+.logo svg{height:22px;width:auto}
+.top-bar-txt{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;color:var(--gm)}
+.top-bar .ver{font-size:9px;background:var(--pink);color:var(--w);padding:2px 6px;border-radius:3px;font-weight:700;letter-spacing:0.1em;margin-left:6px}
+.head{margin-bottom:32px}
+.head-title{font-size:clamp(24px,4vw,36px);font-weight:800;letter-spacing:-0.02em;line-height:1.15;margin-bottom:14px}
+.head-title .accent{color:var(--pink)}
+.head-deck{font-size:14px;color:var(--cs);max-width:760px;line-height:1.6}
+.head-deck code{font-family:'JetBrains Mono',monospace;font-size:12.5px;background:var(--card);padding:1px 6px;border-radius:4px;border:1px solid var(--rule)}
+.toc{background:var(--w);border:1px solid var(--rule);border-radius:14px;padding:18px 22px;margin-bottom:32px;font-size:13px}
+.toc-label{font-family:'JetBrains Mono',monospace;font-size:9px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;color:var(--pink);margin-bottom:10px}
+.toc ol{padding-left:18px;columns:2;gap:24px}
+.toc li{margin-bottom:6px;color:var(--cs)}
+.toc a{color:var(--cs);text-decoration:none}
+.toc a:hover{color:var(--pink)}
+.section{margin-bottom:44px;scroll-margin-top:80px}
+.section-num{font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;color:var(--pink);margin-bottom:6px;display:block}
+.section-title{font-size:21px;font-weight:800;letter-spacing:-0.02em;margin-bottom:16px}
+.sub-title{font-size:15px;font-weight:800;color:var(--charcoal);margin:22px 0 10px}
+p.txt{font-size:13.5px;line-height:1.65;color:var(--cs);margin-bottom:12px}
+p.txt strong{color:var(--charcoal)}
+p.txt code{font-family:'JetBrains Mono',monospace;font-size:12.5px;background:var(--card);padding:1px 6px;border-radius:4px;border:1px solid var(--rule)}
+.callout{background:var(--card);border:1px solid var(--rule);border-left:4px solid var(--pink);border-radius:0 12px 12px 0;padding:14px 18px;margin:14px 0;font-size:13px;line-height:1.6;color:var(--cs)}
+.callout strong{color:var(--charcoal)}
+.callout.green{border-left-color:var(--green);background:var(--gw)}
+.callout.warn{border-left-color:var(--warn);background:var(--ww)}
+.callout.blue{border-left-color:var(--blue);background:var(--bw)}
+table.m{width:100%;border-collapse:collapse;background:var(--w);border-radius:12px;overflow:hidden;border:1px solid var(--rule);font-size:12.5px;margin-bottom:16px}
+table.m th{font-family:'JetBrains Mono',monospace;font-size:9px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--gm);padding:10px 13px;text-align:left;background:var(--card);border-bottom:1px solid var(--rule)}
+table.m td{padding:9px 13px;border-bottom:1px solid var(--rs);color:var(--cs);vertical-align:top}
+table.m tr:last-child td{border-bottom:none}
+table.m .mn{font-weight:700;color:var(--charcoal)}
+table.m .num{font-family:'JetBrains Mono',monospace}
+table.m .tag{font-family:'JetBrains Mono',monospace;font-size:9px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;padding:2px 7px;border-radius:4px;display:inline-block;white-space:nowrap}
+table.m .tag.ok{background:var(--gw);color:var(--green)}
+table.m .tag.bad{background:var(--ww);color:var(--warn)}
+table.m .tag.new{background:var(--bw);color:var(--blue)}
+.query-btn{display:inline-flex;align-items:center;gap:6px;background:var(--charcoal);color:var(--w);border:none;border-radius:8px;padding:9px 16px;font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;letter-spacing:0.04em;cursor:pointer;margin:6px 0 12px}
+.query-btn:hover{background:var(--pink)}
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(41,43,46,0.6);z-index:1000;align-items:center;justify-content:center;padding:24px}
+.modal-overlay.open{display:flex}
+.modal-box{background:#1E2023;border-radius:16px;max-width:900px;width:100%;max-height:82vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 24px 60px rgba(0,0,0,0.4)}
+.modal-head{display:flex;justify-content:space-between;align-items:center;padding:16px 20px;border-bottom:1px solid rgba(255,255,255,0.08)}
+.modal-head span{font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700;color:#E8E9EB;letter-spacing:0.04em}
+.modal-close{background:none;border:none;color:#94A3B8;font-size:20px;cursor:pointer;line-height:1;padding:2px 8px}
+.modal-close:hover{color:#fff}
+.modal-body{padding:18px 20px;overflow:auto}
+.modal-body .qlabel{font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:#E6485C;margin:14px 0 6px}
+.modal-body .qlabel:first-child{margin-top:0}
+.modal-body pre{margin:0 0 4px;background:transparent;padding:0;font-family:'JetBrains Mono',monospace;font-size:11.5px;line-height:1.6;color:#E8E9EB;white-space:pre-wrap}
+.glossary{display:grid;grid-template-columns:1fr;gap:0;background:var(--w);border:1px solid var(--rule);border-radius:12px;overflow:hidden}
+.glossary-item{display:grid;grid-template-columns:160px 1fr;gap:16px;padding:12px 18px;border-bottom:1px solid var(--rs)}
+.glossary-item:last-child{border-bottom:none}
+.glossary-item .field{font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700;color:var(--pink)}
+.glossary-item .def{font-size:12.5px;color:var(--cs);line-height:1.55}
+.watch{background:var(--w);border:1px solid var(--rule);border-radius:14px;padding:16px 20px;margin-bottom:10px;display:flex;gap:14px;align-items:flex-start}
+.watch .ico{width:22px;height:22px;border-radius:50%;background:var(--ww);color:var(--warn);font-family:'JetBrains Mono',monospace;font-weight:700;font-size:11px;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
+.watch .txt{font-size:12.5px;line-height:1.6;color:var(--cs)}
+.watch .txt strong{color:var(--charcoal)}
+.bottom{border-top:1px solid var(--rule);padding-top:20px;margin-top:20px}
+.bottom p{font-size:13px;line-height:1.6;color:var(--cs)}
+.bottom-sig{font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:600;color:var(--gm);margin-top:14px}
+.bottom-sig .pink{color:var(--pink)}
+@media(max-width:800px){.page{padding:24px 16px 56px}.toc ol{columns:1}}
+</style>
+</head>
+<body>
+<div class="page">
+
+<div class="top-bar">
+  <span class="logo"><svg viewBox="0 0 104 32" fill="none" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M13.1151 13.519C17.302 14.3547 20.3139 13.9602 22.2514 12.3347V4.20114H25.8592V25.535H22.2514V16.1184C20.7622 16.8201 19.0142 17.1731 16.9913 17.1731C15.7959 17.1731 14.5039 17.0492 13.1151 16.8046V25.535H9.50866V15.9599C9.03462 15.8241 8.55231 15.6785 8.0594 15.5198C5.47279 14.6879 2.15403 15.0945 0.723524 15.7075L0 12.5309C2.07157 11.8148 5.76141 11.3847 8.9963 12.4255C9.16891 12.481 9.33908 12.534 9.50866 12.5865V4.20114H13.1151V13.519Z" fill="#E6485C"/></svg></span>
+  <span class="top-bar-txt">Costos en NULL · Pricing &amp; Data<span class="ver">INVESTIGACIÓN</span></span>
+</div>
+
+<div class="head">
+  <h1 class="head-title">Costos en NULL: <span class="accent">investigación</span></h1>
+  <p class="head-deck">Investigación de un patrón de inconsistencia en el cálculo de Gross Margin. Cubre el mecanismo del error, el alcance real, las causas raíz identificadas, y el efecto del deploy de <code>IMSI prefixes</code> del equipo de Data sobre cada una. Incluye las queries completas (desplegables).</p>
+
+  <div class="callout blue">
+    <strong>TL;DR</strong>
+    <ul style="margin:8px 0 0 18px; padding:0;">
+      <li style="margin-bottom:5px;">Costos en <code>NULL</code> rompen el cálculo de GM% en el dashboard — confirmado y cuantificado en ~101 destinos.</li>
+      <li style="margin-bottom:5px;">Causa raíz: dos fallas de resolución de país (proveedores <strong>JSC</strong> y <strong>CHM</strong>) más un código de país legado (<strong>ANT</strong>, Antillas Neerlandesas, en Curaçao/Bonaire).</li>
+      <li style="margin-bottom:5px;">El último deploy de <code>IMSI prefixes</code> <strong>resolvió JSC</strong>, pero coincide con una <strong>regresión nueva en CHM</strong>, y <strong>no tocó ANT</strong>.</li>
+      <li style="margin-bottom:5px;">Hallazgo nuevo, sin profundizar todavía: <strong>Feroe</strong>, con cobertura de costo ausente y atribución geográfica cruzada bajo JSC — posible patrón repetido en otros destinos de bajo volumen.</li>
+      <li>Puntos a resolver: la regresión de CHM, el diccionario de ANT, y el alcance real del caso Feroe.</li>
+    </ul>
+  </div>
+</div>
+
+<div class="toc">
+  <div class="toc-label">Contenido</div>
+  <ol>
+    <li><a href="#s1">El mecanismo del error</a></li>
+    <li><a href="#s2">Alcance: cuántos destinos</a></li>
+    <li><a href="#s3">Dónde se origina el NULL</a></li>
+    <li><a href="#s4">Concentración por proveedor</a></li>
+    <li><a href="#s5">Causa raíz: dos mecanismos distintos</a></li>
+    <li><a href="#s6">Qué determina el bucket "800"</a></li>
+    <li><a href="#s7">Impacto estimado en revenue</a></li>
+    <li><a href="#s8">Efecto del deploy de IMSI prefixes</a></li>
+    <li><a href="#s9">Estado actual, por mecanismo</a></li>
+    <li><a href="#s10">Glosario</a></li>
+    <li><a href="#s11">Qué falta / próximos pasos</a></li>
+  </ol>
+</div>
+
+<div class="section" id="s1">
+  <span class="section-num">Sección 1</span>
+  <h2 class="section-title">El mecanismo del error</h2>
+  <p class="txt">El dashboard calcula el margen bruto con el campo <code>%GM</code> = <code>SUM(net_revenue - total_cost) / SUM(net_revenue)</code> — la fórmula está bien construida, tal como figura en el campo calculado de Looker Studio. El problema no está en la fórmula, sino en cómo SQL maneja los valores <code>NULL</code>: cuando <code>total_cost</code> es <code>NULL</code> en una fila, <code>net_revenue - total_cost</code> también da <code>NULL</code>, y <code>SUM()</code> descarta esa fila por completo del numerador — pero <code>SUM(net_revenue)</code> en el denominador sí la cuenta entera. El resultado: cualquier fila con costo <code>NULL</code> termina pesando como si tuviera margen cero, sin que la fórmula esté mal escrita ni nadie lo haya decidido así.</p>
+  <p class="txt">El desvío se detectó al exportar los datos subyacentes y reconciliar manualmente revenue y costos por destino: en varios casos, el GM% mostrado no coincidía con el que resultaba de restar costo a revenue línea por línea desde el export. Eso disparó esta investigación.</p>
+  <p class="txt">Para confirmar el mecanismo, se midió la relación entre el % de filas sin costo y el desvío resultante en puntos de GM, sobre 6 destinos con el problema y 6 de control:</p>
+  <table class="m">
+    <thead><tr><th>% filas sin costo</th><th style="text-align:right">Diferencia en puntos de GM</th></tr></thead>
+    <tbody>
+      <tr><td class="mn">0%</td><td class="num" style="text-align:right">0</td></tr>
+      <tr><td class="mn">4%</td><td class="num" style="text-align:right">2</td></tr>
+      <tr><td class="mn">12%</td><td class="num" style="text-align:right">8</td></tr>
+      <tr><td class="mn">34%</td><td class="num" style="text-align:right">34</td></tr>
+      <tr><td class="mn">40%</td><td class="num" style="text-align:right">40</td></tr>
+      <tr><td class="mn">70%</td><td class="num" style="text-align:right">65</td></tr>
+      <tr><td class="mn">77%</td><td class="num" style="text-align:right">76</td></tr>
+    </tbody>
+  </table>
+  <div class="callout warn"><strong>No es un error de redondeo ni de atribución entre proveedores.</strong> Es un efecto silencioso de cómo SQL propaga <code>NULL</code> en una resta, y hace que el GM% se comporte como si, en las filas sin costo, el costo fuera igual al revenue.</div>
+  <button class="query-btn" onclick="document.getElementById('modal-s1').classList.add('open')">▶ Ver query</button>
+</div>
+
+<div class="section" id="s2">
+  <span class="section-num">Sección 2</span>
+  <h2 class="section-title">Alcance: cuántos destinos</h2>
+  <p class="txt">La muestra inicial identificó 6 destinos. Se corrió el mismo chequeo sobre el catálogo completo en <code>product_end_date_gm_v4</code>.</p>
+  <div class="callout warn"><strong>101 destinos</strong> mostraron al menos una fila con <code>total_cost_per_product IS NULL</code>, con severidad de hasta <strong>79%</strong> de filas afectadas (Curaçao/Bonaire) y una cola larga por debajo del 1%.</div>
+  <p class="txt">No es un caso aislado de 6 destinos — es un problema presente en la mayor parte del catálogo, con severidad muy dispar.</p>
+  <button class="query-btn" onclick="document.getElementById('modal-s2').classList.add('open')">▶ Ver query</button>
+</div>
+
+<div class="section" id="s3">
+  <span class="section-num">Sección 3</span>
+  <h2 class="section-title">Dónde se origina el NULL</h2>
+  <p class="txt">Se consultó <code>product_end_date_gm_v4</code> directamente para las filas con costo en <code>NULL</code>. El valor ya llega así a la tabla — no se genera después, en Looker ni en el export.</p>
+  <div class="callout"><strong>El origen está aguas arriba de Looker/export</strong>, dentro del propio pipeline de Pricing (<code>product_end_date_gm_v4</code>), que a su vez lee de <code>fct_cons_and_order</code>. Esto solo confirma que Pricing no genera el problema — no identifica la fuente final. La Sección 5 profundiza y ubica el origen real un paso más atrás, en <code>consumption_cost_per_day</code>.</div>
+  <button class="query-btn" onclick="document.getElementById('modal-s3').classList.add('open')">▶ Ver query</button>
+</div>
+
+<div class="section" id="s4">
+  <span class="section-num">Sección 4</span>
+  <h2 class="section-title">Concentración por proveedor</h2>
+  <p class="txt">Se agruparon las filas <code>NULL</code> por <code>destination_iso</code> + <code>esim_provider_code</code>. El patrón no es aleatorio.</p>
+  <table class="m">
+    <thead><tr><th>Proveedor</th><th>Patrón observado</th></tr></thead>
+    <tbody>
+      <tr><td class="mn">OFR</td><td>100% <code>NULL</code> en todas las apariciones (destinos con sufijo EU y destinos sin mapear).</td></tr>
+      <tr><td class="mn">CHM</td><td>Muy alto específicamente en Curaçao (99,5%) y Bonaire (99,5%).</td></tr>
+      <tr><td class="mn">Otros</td><td>Dispersos, en porcentajes bajos.</td></tr>
+    </tbody>
+  </table>
+  <div class="callout blue">Primera señal de que el problema está concentrado por proveedor y por un clúster de destino específico (Antillas).</div>
+  <button class="query-btn" onclick="document.getElementById('modal-s4').classList.add('open')">▶ Ver query</button>
+</div>
+
+<div class="section" id="s5">
+  <span class="section-num">Sección 5</span>
+  <h2 class="section-title">Causa raíz: dos mecanismos distintos</h2>
+  <p class="txt">Se cruzó cada fila con costo <code>NULL</code> contra la tabla de costo del MDM (<code>consumption_cost_per_day</code>) por <code>iccid + utc_date</code>, para ver si el costo existe bajo otra clave.</p>
+
+  <div class="sub-title">5.1 Código de país legado — Antillas Neerlandesas (ANT)</div>
+  <p class="txt"><code>CUW</code> (Curaçao) y <code>BES</code> (Bonaire) resuelven de forma consistente a <code>ANT</code> en el MDM — el código ISO de las <strong>Antillas Neerlandesas, disueltas en 2010</strong> en Curaçao, Bonaire/San Eustaquio/Saba, y Sint Maarten. El diccionario de país del pipeline de costo no reconoce esa división.</p>
+  <div class="callout warn">Alcance acotado (Curaçao/Bonaire), pero severo donde aplica. Fix probable: actualizar el diccionario de país para reconocer la división post-2010.</div>
+
+  <div class="sub-title">5.2 Placeholder de país no resuelto (código "800" / "900")</div>
+  <p class="txt">Un segundo clúster, mucho más grande, resuelve a un código placeholder <code>800</code> (o <code>900</code>), <strong>sin una sola excepción con costo presente</strong>. Se confirmó vía volumen de GB que estas filas representan consumo real de datos del cliente, no tráfico técnico de señalización — se descartó esa hipótesis alternativa.</p>
+  <div class="callout warn">Presente en casi todo el catálogo: USA, Europa, Corea, Brasil, Turquía, Egipto, México, Tailandia, entre otros.</div>
+  <button class="query-btn" onclick="document.getElementById('modal-s5').classList.add('open')">▶ Ver queries (3 partes)</button>
+</div>
+
+<div class="section" id="s6">
+  <span class="section-num">Sección 6</span>
+  <h2 class="section-title">Qué determina el bucket "800"</h2>
+  <p class="txt">Se agruparon las filas no resueltas por <code>macro_esim_provider_code</code> + <code>routing_case</code>, para ver si el fallo depende del proveedor o de la red específica.</p>
+  <table class="m">
+    <thead><tr><th>Proveedor</th><th>Tasa de fallo observada (medición original)</th><th>Detalle</th></tr></thead>
+    <tbody>
+      <tr><td class="mn">JSC</td><td class="num">30–50%</td><td>Consistente en <code>routing_case</code> 1, 102, 103, sin importar el carrier real detrás (AT&amp;T, Vivo, Orange, T-Mobile, Turkcell muestran la misma tasa bajo JSC).</td></tr>
+      <tr><td class="mn">CHM</td><td class="num">~1%</td><td>Tasa baja, pero sobre volumen tan alto que igual representa una porción grande de filas afectadas. Concentrado en <code>routing_case</code> de tipo app (YouTube, TikTok, Netflix, "Other APP").</td></tr>
+      <tr><td class="mn">3AU</td><td class="num">bajo</td><td><code>routing_case = 'whitelist'</code> toca 76 destinos distintos — posible tráfico de cortesía sin costo real, no confirmado.</td></tr>
+    </tbody>
+  </table>
+  <div class="callout blue">Un solo mecanismo de fondo — falla de resolución de país — presente en todos los proveedores, con tasas muy distintas. JSC es el peor proporcionalmente; CHM aporta más filas afectadas en términos absolutos por su volumen.</div>
+  <button class="query-btn" onclick="document.getElementById('modal-s6').classList.add('open')">▶ Ver queries</button>
+</div>
+
+<div class="section" id="s7">
+  <span class="section-num">Sección 7</span>
+  <h2 class="section-title">Impacto estimado en revenue</h2>
+  <p class="txt">Estimación de orden de magnitud usando <code>net_price</code> de la tabla de consumo (conocida por ser imprecisa — no refleja bien refunds ni órdenes multi-unidad; suficiente para dimensionar, no para cifra contable).</p>
+  <table class="m">
+    <thead><tr><th>Mecanismo</th><th style="text-align:right">Filas</th><th style="text-align:right">Revenue estimado</th><th style="text-align:right">Destinos</th></tr></thead>
+    <tbody>
+      <tr><td class="mn">JSC, país no resuelto</td><td class="num" style="text-align:right">874.980</td><td class="num" style="text-align:right">~€35,0M</td><td class="num" style="text-align:right">193</td></tr>
+      <tr><td class="mn">CHM, país no resuelto</td><td class="num" style="text-align:right">904.238</td><td class="num" style="text-align:right">~€39,4M</td><td class="num" style="text-align:right">125</td></tr>
+      <tr><td class="mn">ANT legado (Curaçao/Bonaire)</td><td class="num" style="text-align:right">231.588</td><td class="num" style="text-align:right">~€15,8M</td><td class="num" style="text-align:right">2</td></tr>
+    </tbody>
+  </table>
+  <div class="callout warn">La falla de resolución de país (JSC + CHM combinados, ~€74,4M) es el componente dominante. El código legado ANT es real pero comparativamente menor y acotado.</div>
+  <button class="query-btn" onclick="document.getElementById('modal-s7').classList.add('open')">▶ Ver query</button>
+</div>
+
+<div class="section" id="s8">
+  <span class="section-num">Sección 8</span>
+  <h2 class="section-title">Efecto del deploy de IMSI prefixes</h2>
+  <p class="txt">El equipo de Data anunció un deploy que incluye, entre otros cambios, la incorporación de nuevos prefijos IMSI al mapeo de red. Se repitió el análisis con datos posteriores al deploy para verificar el efecto real sobre cada mecanismo, en vez de asumirlo.</p>
+
+  <div class="sub-title">8.1 JSC — resuelto</div>
+  <div class="callout green"><strong><code>pct_800</code> de JSC bajó de 30–50% a ~0,0%</strong> en los <code>routing_case</code> 1, 102 y 103. El deploy corrigió este mecanismo de forma efectiva.</div>
+
+  <div class="sub-title">8.2 CHM — regresión nueva, no una mejora</div>
+  <p class="txt">Se comparó <code>pct_800</code> de CHM antes y después del deploy, en los mismos <code>routing_case</code> (YouTube, TikTok, Netflix, "Other APP").</p>
+  <table class="m">
+    <thead><tr><th>routing_case</th><th style="text-align:right">Pre-deploy</th><th style="text-align:right">Post-deploy</th></tr></thead>
+    <tbody>
+      <tr><td class="mn">youtube</td><td class="num" style="text-align:right">13,7%</td><td class="num" style="text-align:right">21,4%</td></tr>
+      <tr><td class="mn">tiktok</td><td class="num" style="text-align:right">13,5%</td><td class="num" style="text-align:right">20,6%</td></tr>
+      <tr><td class="mn">Other APP</td><td class="num" style="text-align:right">13,5%</td><td class="num" style="text-align:right">20,9%</td></tr>
+      <tr><td class="mn">netflix</td><td class="num" style="text-align:right">8,5%</td><td class="num" style="text-align:right">13,6%</td></tr>
+    </tbody>
+  </table>
+  <div class="callout warn">Empeoramiento consistente en las cuatro categorías, sin excepción. No es ruido de medición — es un efecto medible, y coincide en el tiempo con el mismo deploy que corrigió JSC.</div>
+
+  <div class="sub-title">8.3 ANT — sin cambios</div>
+  <div class="callout">El patrón <code>CUW/BES → ANT</code> se mantiene igual que antes del deploy. Consistente con lo esperado: el deploy mapeó IMSI, no diccionario de país.</div>
+
+  <div class="sub-title">8.4 Hallazgo nuevo — Feroe (FRO), un tercer mecanismo</div>
+  <p class="txt">Al revisar el panorama post-deploy, Feroe apareció con 32,5% de filas sin costo — no estaba entre los casos más severos del análisis original. El desglose muestra algo distinto a ANT y a "800":</p>
+  <div class="callout warn"><code>FRO → FRO</code> con proveedor JSC: <strong>6.801 filas, 0 con costo</strong> — el país está bien resuelto, pero JSC no tiene cobertura de costo para ese destino. El resto de las filas de esta combinación resuelven a destinos geográficamente incoherentes con Feroe (España, Italia, Noruega, Turquía, EE.UU., Australia), lo que sugiere una atribución cruzada adicional, no solo un vacío de cobertura.</div>
+  <button class="query-btn" onclick="document.getElementById('modal-s8').classList.add('open')">▶ Ver queries de verificación post-deploy</button>
+</div>
+
+<div class="section" id="s9">
+  <span class="section-num">Sección 9</span>
+  <h2 class="section-title">Estado actual, por mecanismo</h2>
+  <table class="m">
+    <thead><tr><th>Mecanismo</th><th>Estado</th><th>Alcance</th></tr></thead>
+    <tbody>
+      <tr><td class="mn">JSC, país no resuelto</td><td><span class="tag ok">Resuelto</span></td><td>Era ~193 destinos</td></tr>
+      <tr><td class="mn">CHM, país no resuelto</td><td><span class="tag bad">Empeoró</span></td><td>Todo el catálogo, ahora ~14–21%</td></tr>
+      <tr><td class="mn">ANT, código de país legado</td><td><span class="tag bad">Sin cambios</span></td><td>Curaçao, Bonaire</td></tr>
+      <tr><td class="mn">JSC sin cobertura + atribución cruzada</td><td><span class="tag new">Nuevo, sin investigar en profundidad</span></td><td>Feroe, posiblemente otros destinos de bajo volumen con JSC</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="section" id="s10">
+  <span class="section-num">Sección 10</span>
+  <h2 class="section-title">Glosario</h2>
+  <div class="glossary">
+    <div class="glossary-item"><div class="field">total_cost_per_product</div><div class="def">Costo total del producto en <code>product_end_date_gm_v4</code>. Cuando es <code>NULL</code>, la fórmula de GM% falla silenciosamente (Sección 1).</div></div>
+    <div class="glossary-item"><div class="field">macro_esim_provider_code</div><div class="def">Proveedor de conectividad detrás del esim (JSC, CHM, OFR, 3AU). Nivel al que se concentra la falla de resolución de país.</div></div>
+    <div class="glossary-item"><div class="field">routing_case</div><div class="def">Categoría de ruteo de red o de aplicación asociada al consumo. Para JSC son códigos numéricos (1, 102, 103); para CHM son categorías de app (youtube, tiktok, netflix, "Other APP").</div></div>
+    <div class="glossary-item"><div class="field">country_code_iso3 = "800" / "900"</div><div class="def">Placeholder que usa el pipeline de costo cuando no logra resolver el país real de una fila de consumo. Nunca tiene costo asociado.</div></div>
+    <div class="glossary-item"><div class="field">ANT</div><div class="def">Código ISO de las Antillas Neerlandesas, disueltas en 2010. Sigue apareciendo en el mapeo de costo para Curaçao (<code>CUW</code>) y Bonaire (<code>BES</code>).</div></div>
+  </div>
+</div>
+
+<div class="section" id="s11">
+  <span class="section-num">Sección 11</span>
+  <h2 class="section-title">Qué falta / próximos pasos</h2>
+  <div class="watch"><div class="ico">!</div><div class="txt"><strong>CHM — investigar la causa de la regresión.</strong> ¿El deploy tocó algún mapeo compartido entre JSC y CHM? La coincidencia temporal entre la mejora de uno y el empeoramiento del otro amerita revisión directa del cambio desplegado.</div></div>
+  <div class="watch"><div class="ico">✓</div><div class="txt"><strong>ANT — fix de diccionario pendiente.</strong> No cubierto por el último deploy. Requiere actualizar el mapeo de país para reconocer la división de las Antillas Neerlandesas en Curaçao/Bonaire/Sint Maarten.</div></div>
+  <div class="watch"><div class="ico">?</div><div class="txt"><strong>Feroe y JSC de bajo volumen — profundizar.</strong> El mecanismo encontrado en Feroe (cobertura de costo ausente + atribución geográfica cruzada) no se validó todavía en otros destinos de bajo volumen con JSC. Podría no ser un caso aislado.</div></div>
+  <div class="watch"><div class="ico">↺</div><div class="txt"><strong>Backfill histórico.</strong> No se confirmó si un eventual fix (ANT, o el que corresponda para CHM) se aplicaría solo hacia adelante o también corregiría el histórico ya mostrado en el dashboard.</div></div>
+  <div class="watch"><div class="ico">i</div><div class="txt"><strong>Unified Transactional Data Product.</strong> El mismo anuncio de deploy menciona un producto de datos transaccionales unificado (100% de eventos de pago). Queda por confirmar si aplica o complementa el trabajo en curso sobre revenue y discount code, discutido por separado.</div></div>
+</div>
+
+<div class="bottom">
+  <p><strong>Este documento cubre la investigación completa hasta la fecha</strong>, incluyendo la verificación posterior al último deploy de Data. Las queries completas están disponibles desplegando cada sección.</p>
+  <div class="bottom-sig">— Fernando Arizmendi <span class="pink">·</span> Pricing &amp; Data</div>
+</div>
+
+</div>
+
+<!-- MODALS -->
+<div class="modal-overlay" id="modal-s1">
+  <div class="modal-box">
+    <div class="modal-head"><span>QUERY — SECCIÓN 1: AISLAR EL MECANISMO DEL NULL</span><button class="modal-close" onclick="document.getElementById('modal-s1').classList.remove('open')">×</button></div>
+    <div class="modal-body">
+<pre>-- Compara el resultado del campo en producción (SUM(rev-cost)/SUM(rev))
+-- contra un cálculo que suma revenue y costo por separado antes de dividir,
+-- para medir el desvío que introducen las filas con costo NULL.
+SELECT
+  destination,
+  SUM(net_revenue - total_cost) / SUM(net_revenue)              AS gm_campo_actual,
+  (SUM(net_revenue) - SUM(total_cost)) / SUM(net_revenue)       AS gm_referencia,
+  COUNTIF(total_cost IS NULL) AS null_cost_rows,
+  COUNT(*) AS total_rows
+FROM `hly--data--looker--79.dp_consumptions.rpt_pricing_gm`
+WHERE destination IN ('CUW','BES', /* + resto de destinos rotos y de control */)
+GROUP BY destination
+ORDER BY null_cost_rows DESC;</pre>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-s2">
+  <div class="modal-box">
+    <div class="modal-head"><span>QUERY — SECCIÓN 2: ALCANCE POR DESTINO</span><button class="modal-close" onclick="document.getElementById('modal-s2').classList.remove('open')">×</button></div>
+    <div class="modal-body">
+<pre>SELECT
+  country_iso,
+  COUNTIF(total_cost_per_product IS NULL) AS null_rows,
+  COUNT(*) AS total_rows,
+  ROUND(100*SAFE_DIVIDE(COUNTIF(total_cost_per_product IS NULL), COUNT(*)),1) AS pct_null
+FROM `hly--data--looker--79.dp_consumptions.product_end_date_gm_v4`
+GROUP BY country_iso
+HAVING null_rows > 0
+ORDER BY pct_null DESC;</pre>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-s3">
+  <div class="modal-box">
+    <div class="modal-head"><span>QUERY — SECCIÓN 3: ORIGEN DEL NULL</span><button class="modal-close" onclick="document.getElementById('modal-s3').classList.remove('open')">×</button></div>
+    <div class="modal-body">
+<pre>SELECT country_iso, variant, provider, end_date, total_cost_per_product, total_net_revenue
+FROM `hly--data--looker--79.dp_consumptions.product_end_date_gm_v4`
+WHERE total_cost_per_product IS NULL
+LIMIT 200;</pre>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-s4">
+  <div class="modal-box">
+    <div class="modal-head"><span>QUERY — SECCIÓN 4: CONCENTRACIÓN POR PROVEEDOR</span><button class="modal-close" onclick="document.getElementById('modal-s4').classList.remove('open')">×</button></div>
+    <div class="modal-body">
+<pre>SELECT destination_iso, esim_provider_code,
+  COUNTIF(total_volume_cost_eur IS NULL) AS null_rows, COUNT(*) AS total_rows,
+  ROUND(100*SAFE_DIVIDE(COUNTIF(total_volume_cost_eur IS NULL), COUNT(*)),1) AS pct_null
+FROM `hly--data--looker--79.dp_consumptions.fct_cons_and_order`
+WHERE channel = 'B2C'
+GROUP BY destination_iso, esim_provider_code
+HAVING null_rows > 0
+ORDER BY pct_null DESC;</pre>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-s5">
+  <div class="modal-box">
+    <div class="modal-head"><span>QUERIES — SECCIÓN 5: CAUSA RAÍZ (3 PARTES)</span><button class="modal-close" onclick="document.getElementById('modal-s5').classList.remove('open')">×</button></div>
+    <div class="modal-body">
+<div class="qlabel">Parte A — cruce contra la tabla de costo del MDM</div>
+<pre>SELECT n.iccid, n.esim_provider_code, n.destination_iso AS destino_en_tabla_vieja,
+  m.country_code_iso3 AS destino_en_mdm, m.total_cost_eur AS costo_en_mdm, m.bundle_name,
+  m.order_line_id
+FROM `hly--data--looker--79.dp_consumptions.fct_cons_and_order` n
+LEFT JOIN `hly--data--pro--57.dp_consumption.consumption_cost_per_day` m
+  ON n.iccid = m.iccid AND n.utc_date = m.utc_date
+WHERE n.channel = 'B2C' AND n.total_volume_cost_eur IS NULL
+LIMIT 2000;</pre>
+<div class="qlabel">Parte B — confirmar el patrón CUW/BES → ANT a escala</div>
+<pre>SELECT
+  n.destination_iso AS destino_viejo,
+  m.country_code_iso3 AS destino_mdm,
+  COUNT(*) AS n_filas,
+  COUNTIF(m.total_cost_eur IS NOT NULL) AS con_costo_en_mdm
+FROM `hly--data--looker--79.dp_consumptions.fct_cons_and_order` n
+LEFT JOIN `hly--data--pro--57.dp_consumption.consumption_cost_per_day` m
+  ON n.iccid = m.iccid AND n.utc_date = m.utc_date
+WHERE n.destination_iso IN ('CUW', 'BES', 'ANT') AND n.channel = 'B2C'
+GROUP BY destino_viejo, destino_mdm
+ORDER BY n_filas DESC;</pre>
+<div class="qlabel">Parte C — descartar la hipótesis de tráfico técnico sin consumo real</div>
+<pre>SELECT
+  n.destination_iso AS destino_viejo,
+  m.country_code_iso3 AS destino_mdm,
+  m.bundle_name,
+  COUNT(*) AS n_filas,
+  SUM(n.total_volume_gb) AS gb_totales,
+  AVG(n.total_volume_gb) AS gb_promedio
+FROM `hly--data--looker--79.dp_consumptions.fct_cons_and_order` n
+LEFT JOIN `hly--data--pro--57.dp_consumption.consumption_cost_per_day` m
+  ON n.iccid = m.iccid AND n.utc_date = m.utc_date
+WHERE n.channel = 'B2C' AND n.total_volume_cost_eur IS NULL
+GROUP BY destino_viejo, destino_mdm, bundle_name
+ORDER BY n_filas DESC
+LIMIT 40;</pre>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-s6">
+  <div class="modal-box">
+    <div class="modal-head"><span>QUERIES — SECCIÓN 6: BUCKET "800"</span><button class="modal-close" onclick="document.getElementById('modal-s6').classList.remove('open')">×</button></div>
+    <div class="modal-body">
+<div class="qlabel">Desglose por proveedor y routing_case</div>
+<pre>SELECT
+  n.routing_case,
+  n.operator_name,
+  n.macro_esim_provider_code,
+  COUNT(*) AS n_filas,
+  COUNTIF(m.country_code_iso3 = '800') AS n_caen_en_800,
+  ROUND(100*SAFE_DIVIDE(COUNTIF(m.country_code_iso3 = '800'), COUNT(*)),1) AS pct_800
+FROM `hly--data--looker--79.dp_consumptions.fct_cons_and_order` n
+LEFT JOIN `hly--data--pro--57.dp_consumption.consumption_cost_per_day` m
+  ON n.iccid = m.iccid AND n.utc_date = m.utc_date
+WHERE n.channel = 'B2C'
+GROUP BY routing_case, operator_name, macro_esim_provider_code
+HAVING n_caen_en_800 > 0
+ORDER BY n_caen_en_800 DESC
+LIMIT 30;</pre>
+<div class="qlabel">Follow-up — desglose del bucket "sin clasificar" en la Sección 7</div>
+<pre>WITH nulos AS (
+  SELECT
+    n.iccid, n.utc_date, n.macro_esim_provider_code,
+    n.destination_iso, n.net_price, n.routing_case
+  FROM `hly--data--looker--79.dp_consumptions.fct_cons_and_order` n
+  WHERE n.channel = 'B2C' AND n.total_volume_cost_eur IS NULL
+)
+SELECT
+  macro_esim_provider_code,
+  routing_case,
+  COUNT(*) AS n_filas,
+  SUM(net_price) AS revenue_estimado_eur,
+  COUNT(DISTINCT destination_iso) AS n_destinos
+FROM nulos
+WHERE macro_esim_provider_code != 'JSC'
+  AND destination_iso NOT IN ('CUW', 'BES')
+GROUP BY macro_esim_provider_code, routing_case
+ORDER BY n_filas DESC
+LIMIT 30;</pre>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-s7">
+  <div class="modal-box">
+    <div class="modal-head"><span>QUERY — SECCIÓN 7: IMPACTO EN REVENUE</span><button class="modal-close" onclick="document.getElementById('modal-s7').classList.remove('open')">×</button></div>
+    <div class="modal-body">
+<pre>-- net_price como aproximación; conocida por ser imprecisa (ver investigación
+-- de v5 sobre revenue: refunds y órdenes multi-unidad no se reflejan bien
+-- acá). Solo para dimensionar orden de magnitud.
+WITH nulos AS (
+  SELECT
+    n.iccid, n.utc_date, n.esim_provider_code, n.macro_esim_provider_code,
+    n.destination_iso, n.net_price, n.routing_case
+  FROM `hly--data--looker--79.dp_consumptions.fct_cons_and_order` n
+  WHERE n.channel = 'B2C' AND n.total_volume_cost_eur IS NULL
+),
+clasificado AS (
+  SELECT
+    *,
+    CASE
+      WHEN macro_esim_provider_code = 'JSC' THEN 'JSC sin resolver (routing_case 1/103/102)'
+      WHEN destination_iso IN ('CUW','BES') THEN 'ANT legado (Curaçao/Bonaire)'
+      ELSE 'Otro / sin clasificar'
+    END AS mecanismo
+  FROM nulos
+)
+SELECT
+  mecanismo,
+  COUNT(*) AS n_filas,
+  SUM(net_price) AS revenue_estimado_eur,
+  COUNT(DISTINCT destination_iso) AS n_destinos_afectados
+FROM clasificado
+GROUP BY mecanismo
+ORDER BY revenue_estimado_eur DESC;</pre>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-s8">
+  <div class="modal-box">
+    <div class="modal-head"><span>QUERIES — SECCIÓN 8: VERIFICACIÓN POST-DEPLOY</span><button class="modal-close" onclick="document.getElementById('modal-s8').classList.remove('open')">×</button></div>
+    <div class="modal-body">
+<div class="qlabel">8.1 — Re-chequeo de JSC, solo datos posteriores al deploy</div>
+<pre>SELECT
+  n.macro_esim_provider_code,
+  n.routing_case,
+  COUNT(*) AS n_filas,
+  COUNTIF(m.country_code_iso3 = '800') AS n_caen_en_800,
+  ROUND(100*SAFE_DIVIDE(COUNTIF(m.country_code_iso3 = '800'), COUNT(*)),1) AS pct_800
+FROM `hly--data--looker--79.dp_consumptions.fct_cons_and_order` n
+LEFT JOIN `hly--data--pro--57.dp_consumption.consumption_cost_per_day` m
+  ON n.iccid = m.iccid AND n.utc_date = m.utc_date
+WHERE n.channel = 'B2C'
+  AND n.utc_date >= '2026-08-10'
+GROUP BY macro_esim_provider_code, routing_case
+HAVING n_caen_en_800 > 0
+ORDER BY n_caen_en_800 DESC
+LIMIT 30;</pre>
+<div class="qlabel">8.2 — Comparación CHM pre vs. post-deploy</div>
+<pre>SELECT
+  CASE WHEN n.utc_date < '2026-08-10' THEN 'pre-deploy' ELSE 'post-deploy' END AS periodo,
+  n.routing_case,
+  COUNT(*) AS n_filas,
+  COUNTIF(m.country_code_iso3 = '800') AS n_caen_en_800,
+  ROUND(100*SAFE_DIVIDE(COUNTIF(m.country_code_iso3 = '800'), COUNT(*)),1) AS pct_800
+FROM `hly--data--looker--79.dp_consumptions.fct_cons_and_order` n
+LEFT JOIN `hly--data--pro--57.dp_consumption.consumption_cost_per_day` m
+  ON n.iccid = m.iccid AND n.utc_date = m.utc_date
+WHERE n.channel = 'B2C'
+  AND n.macro_esim_provider_code = 'CHM'
+  AND n.routing_case IN ('youtube', 'Other APP', 'tiktok', 'netflix')
+  AND n.utc_date BETWEEN '2026-07-01' AND CURRENT_DATE()
+GROUP BY periodo, routing_case
+ORDER BY routing_case, periodo;</pre>
+<div class="qlabel">8.3 — Re-chequeo de ANT, solo datos posteriores al deploy</div>
+<pre>SELECT
+  n.destination_iso AS destino_viejo,
+  m.country_code_iso3 AS destino_mdm,
+  COUNT(*) AS n_filas,
+  COUNTIF(m.total_cost_eur IS NOT NULL) AS con_costo_en_mdm
+FROM `hly--data--looker--79.dp_consumptions.fct_cons_and_order` n
+LEFT JOIN `hly--data--pro--57.dp_consumption.consumption_cost_per_day` m
+  ON n.iccid = m.iccid AND n.utc_date = m.utc_date
+WHERE n.destination_iso IN ('CUW', 'BES', 'ANT') AND n.channel = 'B2C'
+  AND n.utc_date >= '2026-08-10'
+GROUP BY destino_viejo, destino_mdm
+ORDER BY n_filas DESC;</pre>
+<div class="qlabel">8.4 — Investigación del hallazgo en Feroe (FRO)</div>
+<pre>SELECT
+  n.destination_iso AS destino_viejo,
+  m.country_code_iso3 AS destino_mdm,
+  n.macro_esim_provider_code,
+  COUNT(*) AS n_filas,
+  COUNTIF(m.total_cost_eur IS NOT NULL) AS con_costo_en_mdm
+FROM `hly--data--looker--79.dp_consumptions.fct_cons_and_order` n
+LEFT JOIN `hly--data--pro--57.dp_consumption.consumption_cost_per_day` m
+  ON n.iccid = m.iccid AND n.utc_date = m.utc_date
+WHERE n.destination_iso = 'FRO' AND n.channel = 'B2C'
+  AND n.utc_date >= '2026-08-10'
+GROUP BY destino_viejo, destino_mdm, macro_esim_provider_code
+ORDER BY n_filas DESC;</pre>
+<div class="qlabel">8.5 — Panorama general por destino, solo datos posteriores al deploy</div>
+<pre>SELECT
+  country_iso,
+  COUNTIF(total_cost_per_product IS NULL) AS null_rows,
+  COUNT(*) AS total_rows,
+  ROUND(100*SAFE_DIVIDE(COUNTIF(total_cost_per_product IS NULL), COUNT(*)),1) AS pct_null
+FROM `hly--data--looker--79.dp_consumptions.product_end_date_gm_v4`
+WHERE end_date >= '2026-08-10'
+GROUP BY country_iso
+HAVING null_rows > 0
+ORDER BY pct_null DESC;</pre>
+    </div>
+  </div>
+</div>
+
+<script>
+document.querySelectorAll('.modal-overlay').forEach(function(overlay){
+  overlay.addEventListener('click', function(e){ if(e.target === overlay) overlay.classList.remove('open'); });
+});
+document.addEventListener('keydown', function(e){
+  if(e.key === 'Escape') document.querySelectorAll('.modal-overlay.open').forEach(function(o){ o.classList.remove('open'); });
+});
+</script>
+</body>
+</html>
