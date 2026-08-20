@@ -1,0 +1,1309 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PPC-156 — BigQuery vs Pricing Monitoring</title>
+<style>
+:root{--pink:#E6485C;--charcoal:#292B2E;--cs:#4A4D52;--gm:#64748B;--gl:#94A3B8;--paper:#FAFAFB;--card:#F8FAFC;--w:#FFFFFF;--rule:rgba(41,43,46,0.10);--rs:rgba(41,43,46,0.06);--green:#15803D;--gw:#E8F5EE;--warn:#B45309;--ww:#FDF3E7;--blue:#1D4ED8;--bw:#E8EFFD;--purple:#7C3AED;--pw:#F3EEFE}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Mulish',-apple-system,sans-serif;background:var(--paper);color:var(--charcoal);line-height:1.5;-webkit-font-smoothing:antialiased}
+.page{max-width:1100px;margin:0 auto;padding:40px 32px 80px}
+.top-bar{display:flex;align-items:center;gap:14px;margin-bottom:32px;position:sticky;top:0;z-index:100;background:rgba(250,250,251,0.9);backdrop-filter:blur(16px);padding:16px 0;border-bottom:1px solid var(--rule)}
+.logo svg{height:22px;width:auto}
+.top-bar-txt{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;color:var(--gm)}
+.top-bar .ver{font-size:9px;background:var(--pink);color:var(--w);padding:2px 6px;border-radius:3px;font-weight:700;letter-spacing:0.1em;margin-left:6px}
+.head{margin-bottom:32px}
+.head-title{font-size:clamp(24px,4vw,36px);font-weight:800;letter-spacing:-0.02em;line-height:1.15;margin-bottom:14px}
+.head-title .accent{color:var(--pink)}
+.head-deck{font-size:14px;color:var(--cs);max-width:760px;line-height:1.6}
+.head-deck code{font-family:'JetBrains Mono',monospace;font-size:12.5px;background:var(--card);padding:1px 6px;border-radius:4px;border:1px solid var(--rule)}
+.toc{background:var(--w);border:1px solid var(--rule);border-radius:14px;padding:18px 22px;margin-bottom:32px;font-size:13px}
+.toc-label{font-family:'JetBrains Mono',monospace;font-size:9px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;color:var(--pink);margin-bottom:10px}
+.toc ol{padding-left:18px;columns:2;gap:24px}
+.toc li{margin-bottom:6px;color:var(--cs)}
+.toc a{color:var(--cs);text-decoration:none}
+.toc a:hover{color:var(--pink)}
+.section{margin-bottom:44px;scroll-margin-top:80px}
+.section-num{font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;color:var(--pink);margin-bottom:6px;display:block}
+.section-title{font-size:21px;font-weight:800;letter-spacing:-0.02em;margin-bottom:16px}
+.sub-title{font-size:15px;font-weight:800;color:var(--charcoal);margin:22px 0 10px}
+p.txt{font-size:13.5px;line-height:1.65;color:var(--cs);margin-bottom:12px}
+p.txt strong{color:var(--charcoal)}
+p.txt code{font-family:'JetBrains Mono',monospace;font-size:12.5px;background:var(--card);padding:1px 6px;border-radius:4px;border:1px solid var(--rule)}
+.callout{background:var(--card);border:1px solid var(--rule);border-left:4px solid var(--pink);border-radius:0 12px 12px 0;padding:14px 18px;margin:14px 0;font-size:13px;line-height:1.6;color:var(--cs)}
+.callout strong{color:var(--charcoal)}
+.callout.green{border-left-color:var(--green);background:var(--gw)}
+.callout.warn{border-left-color:var(--warn);background:var(--ww)}
+.callout.blue{border-left-color:var(--blue);background:var(--bw)}
+table.m{width:100%;border-collapse:collapse;background:var(--w);border-radius:12px;overflow:hidden;border:1px solid var(--rule);font-size:12.5px;margin-bottom:16px}
+table.m th{font-family:'JetBrains Mono',monospace;font-size:9px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--gm);padding:10px 13px;text-align:left;background:var(--card);border-bottom:1px solid var(--rule)}
+table.m td{padding:9px 13px;border-bottom:1px solid var(--rs);color:var(--cs);vertical-align:top}
+table.m tr:last-child td{border-bottom:none}
+table.m .mn{font-weight:700;color:var(--charcoal)}
+table.m .num{font-family:'JetBrains Mono',monospace}
+.status{display:inline-flex;align-items:center;gap:5px;font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:700;letter-spacing:0.06em;padding:3px 9px;border-radius:20px}
+.status.done{background:var(--gw);color:var(--green)}
+.status.open{background:var(--ww);color:var(--warn)}
+.query-btn{display:inline-flex;align-items:center;gap:6px;background:var(--charcoal);color:var(--w);border:none;border-radius:8px;padding:9px 16px;font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;letter-spacing:0.04em;cursor:pointer;margin:6px 0 12px}
+.query-btn:hover{background:var(--pink)}
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(41,43,46,0.6);z-index:1000;align-items:center;justify-content:center;padding:24px}
+.modal-overlay.open{display:flex}
+.modal-box{background:#1E2023;border-radius:16px;max-width:900px;width:100%;max-height:82vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 24px 60px rgba(0,0,0,0.4)}
+.modal-head{display:flex;justify-content:space-between;align-items:center;padding:16px 20px;border-bottom:1px solid rgba(255,255,255,0.08)}
+.modal-head span{font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700;color:#E8E9EB;letter-spacing:0.04em}
+.modal-close{background:none;border:none;color:#94A3B8;font-size:20px;cursor:pointer;line-height:1;padding:2px 8px}
+.modal-close:hover{color:#fff}
+.modal-body{padding:18px 20px;overflow:auto}
+.modal-body pre{margin:0;background:transparent;padding:0;font-family:'JetBrains Mono',monospace;font-size:11.5px;line-height:1.6;color:#E8E9EB;white-space:pre-wrap}
+.watch{background:var(--w);border:1px solid var(--rule);border-radius:14px;padding:16px 20px;margin-bottom:10px;display:flex;gap:14px;align-items:flex-start}
+.watch .ico{width:22px;height:22px;border-radius:50%;background:var(--ww);color:var(--warn);font-family:'JetBrains Mono',monospace;font-weight:700;font-size:11px;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
+.watch .txt{font-size:12.5px;line-height:1.6;color:var(--cs)}
+.watch .txt strong{color:var(--charcoal)}
+.bottom{border-top:1px solid var(--rule);padding-top:20px;margin-top:20px}
+.bottom p{font-size:13px;line-height:1.6;color:var(--cs)}
+.bottom-sig{font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:600;color:var(--gm);margin-top:14px}
+.bottom-sig .pink{color:var(--pink)}
+@media(max-width:800px){.page{padding:24px 16px 56px}.toc ol{columns:1}}
+</style>
+</head>
+<body>
+<div class="page">
+
+<div class="top-bar">
+  <span class="logo"><svg viewBox="0 0 104 32" fill="none" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M13.1151 13.519C17.302 14.3547 20.3139 13.9602 22.2514 12.3347V4.20114H25.8592V25.535H22.2514V16.1184C20.7622 16.8201 19.0142 17.1731 16.9913 17.1731C15.7959 17.1731 14.5039 17.0492 13.1151 16.8046V25.535H9.50866V15.9599C9.03462 15.8241 8.55231 15.6785 8.0594 15.5198C5.47279 14.6879 2.15403 15.0945 0.723524 15.7075L0 12.5309C2.07157 11.8148 5.76141 11.3847 8.9963 12.4255C9.16891 12.481 9.33908 12.534 9.50866 12.5865V4.20114H13.1151V13.519Z" fill="#E6485C"/></svg></span>
+  <span class="top-bar-txt">PPC-156 · Pricing<span class="ver">BigQuery vs Monitoring</span></span>
+</div>
+
+<div class="head">
+  <h1 class="head-title">BigQuery vs Pricing Monitoring: <span class="accent">reconciliación de consumo y revenue</span></h1>
+  <p class="head-deck">Análisis de las dos brechas reportadas en <code>PPC-156</code> (consumo +6,6%, revenue +16,9%) sobre la ventana <code>2026-01-01 → 2026-06-30</code>. Cubre las 9 preguntas que quedaron abiertas tras el audit de Guido Mautino (reporter del ticket). Queries completas desplegables; los pasos de inspección de repo/metadata (no SQL) están marcados como tal.</p>
+</div>
+
+<div class="toc">
+  <div class="toc-label">Contenido</div>
+  <ol>
+    <li><a href="#s1">Punto de partida</a></li>
+    <li><a href="#s2">Pregunta 1 — total_cost_eur</a></li>
+    <li><a href="#s3">Pregunta 6 — universo de revenue</a></li>
+    <li><a href="#s-p2">Pregunta 2 — OFR tarifa plana</a></li>
+    <li><a href="#s-p3">Pregunta 3 — mapeo CMI=CHM, H3A=3AU</a></li>
+    <li><a href="#s-p4">Pregunta 4 — diccionario country_code_iso3</a></li>
+    <li><a href="#s-p5">Pregunta 5 — códigos 800/900 sin costo</a></li>
+    <li><a href="#s-p7">Pregunta 7 — fix de descripción</a></li>
+    <li><a href="#s-p8">Pregunta 8 — dim_cost vs dim_costs</a></li>
+    <li><a href="#s-p9">Pregunta 9 — consumption_type='local' en OFR</a></li>
+    <li><a href="#s4">Resumen de estado</a></li>
+  </ol>
+</div>
+
+<div class="section" id="s1">
+  <span class="section-num">Sección 1</span>
+  <h2 class="section-title">Punto de partida</h2>
+  <p class="txt">Guido Mautino (reporter del ticket) auditó lo planteado contra las tablas el 11/ago y resolvió 5 de las 9 preguntas originales (no doble conteo, keying por producto vendido, brecha de GB explicada por atribución de bundle, <code>EUR</code> de OFR no es bug, consumo ata con la orden al 99,9%). Quedaron 9 preguntas nuevas.</p>
+  <div class="callout"><strong>Tablas involucradas:</strong> <code>hly--data--pro--57.dp_consumption.consumption_cost_per_day_provider_country_bundle</code>, <code>hly--data--looker--79.dp_consumptions.fct_cons_and_order</code>, <code>hly--data--looker--79.dp_consumptions.product_end_date_gm_v4</code>, <code>hly--data--pro--57.dp_revenue.fct_revenue_prorated_product</code>. La primera se nutre fuertemente de la segunda como fuente aguas arriba. Además, para la pregunta 4 se usó el workbook <code>dim_product_dictionary</code> (<a href="https://docs.google.com/spreadsheets/d/1fFfRB0vLRoEsSeRvfZ8Z5AIwnXLxk-8fhso5mk4Egos/edit?usp=sharing">link</a>) — diccionario de SKU/producto a ISO code, mantenido fuera de BigQuery.</div>
+</div>
+
+<div class="section" id="s2">
+  <span class="section-num">Sección 2</span>
+  <h2 class="section-title">Pregunta 1 — <code>total_cost_eur</code>: ¿Data cost o Total cost? <span class="status done">RESUELTA</span></h2>
+  <p class="txt"><strong>Contexto de la duda:</strong> la tabla de consumo trae un solo campo de costo. Pricing Monitoring reporta Data cost y Fixed cost por separado, y el fijo es el 12,4% del total. Con Carriers solo se negocia data — si <code>total_cost_eur</code> incluyera el fijo, el informe de negociación pediría de más.</p>
+
+  <div class="sub-title">2.1 Aislando la causa</div>
+  <p class="txt">Comparando totales agregados: <strong>preagregada 69.872.113 GB / 52.121.846 €</strong> vs <strong>detallada (B2C) 63.694.290 GB / 45.777.402 €</strong> — brecha de ~8-12%. Se descompuso en pasos sucesivos:</p>
+  <table class="m">
+    <thead><tr><th style="width:220px">Hipótesis probada</th><th>Resultado</th></tr></thead>
+    <tbody>
+      <tr><td class="mn">¿Es B2B mezclado en la preagregada?</td><td>B2B es marginal (118K GB de 69,9M). El grupo con <code>bundle_name IS NULL</code> (4,88M GB) coincide con el volumen de OFR ya conocido (OFR nunca manda <code>bundle_name</code>).</td></tr>
+      <tr><td class="mn">¿€/GB por proveedor, excluyendo B2B/OFR?</td><td>CMI/CHM cerca (ratio GB 0,999). <strong>3AU/H3A con gap de 20%</strong> en volumen — contradice la validación previa de Guido, que había comparado contra el dashboard de COGS, no contra <code>fct_cons_and_order</code>.</td></tr>
+      <tr><td class="mn">¿De dónde sale el 20% faltante en 3AU?</td><td>Filtro <code>channel='B2C'</code> excluye <code>channel='Subscription'</code> (5,53M GB para 3AU). La preagregada no filtra por canal — incluye Subscription.</td></tr>
+    </tbody>
+  </table>
+  <button class="query-btn" onclick="document.getElementById('modal-q1-totales').classList.add('open')">▶ Ver query — totales agregados</button>
+  <button class="query-btn" onclick="document.getElementById('modal-q1-channel').classList.add('open')">▶ Ver query — volumen 3AU por canal</button>
+
+  <div class="sub-title">2.2 Reconciliación final</div>
+  <p class="txt">Con <code>channel IN ('B2C', 'Subscription')</code>, ambas fuentes cierran por proveedor:</p>
+  <table class="m">
+    <thead><tr><th>Proveedor</th><th style="text-align:right">€/GB detallada</th><th style="text-align:right">€/GB preagregada</th><th style="text-align:right">Diferencia</th></tr></thead>
+    <tbody>
+      <tr><td class="mn">3AU / H3A</td><td class="num" style="text-align:right">0,90121</td><td class="num" style="text-align:right">0,90115</td><td class="num" style="text-align:right">0,007%</td></tr>
+      <tr><td class="mn">CHM / CMI</td><td class="num" style="text-align:right">0,61443</td><td class="num" style="text-align:right">0,61445</td><td class="num" style="text-align:right">0,003%</td></tr>
+    </tbody>
+  </table>
+  <button class="query-btn" onclick="document.getElementById('modal-q1-final').classList.add('open')">▶ Ver query — reconciliación final por proveedor</button>
+
+  <div class="callout green"><strong>Conclusión:</strong> <code>total_cost_eur</code> en <code>consumption_cost_per_day_provider_country_bundle</code> es el mismo campo que <code>total_volume_cost_eur</code> en <code>fct_cons_and_order</code>. Ese campo está comentado explícitamente en el script del dashboard como <code>-- data cost only (bug fix)</code>. <strong>Es Data cost, no Total cost.</strong> El fijo (<code>fixed_iccid_cost</code>) vive en <code>product_end_date_gm_v4</code>, con tarifa hardcodeada por proveedor/fecha, en una tabla separada.</div>
+</div>
+
+<div class="section" id="s3">
+  <span class="section-num">Sección 3</span>
+  <h2 class="section-title">Pregunta 6 — universo de revenue de Pricing Monitoring <span class="status done">RESUELTA</span></h2>
+  <p class="txt"><strong>Contexto de la duda:</strong> <code>fct_revenue_prorated_product</code> daba 191,2M€ contra 163,6M€ de Pricing Monitoring (+16,9%). Hipótesis original: el "core" (product_id no numéricos) explicaba el 92% de la brecha.</p>
+
+  <p class="txt">Replicando el filtro exacto de <code>mart_pricing_revenue</code> sobre <code>fct_revenue_prorated_product</code>: <strong>169.904.813 €</strong> neto de refunds, ratio 1,0387 — peor que el mejor proxy ya probado por Guido (165,7M€, ratio 1,013). El filtro documentado no reconcilia mejor.</p>
+  <button class="query-btn" onclick="document.getElementById('modal-q6-mart').classList.add('open')">▶ Ver query — mart_pricing_revenue replicado</button>
+
+  <p class="txt">Las capturas del dashboard (Revenue vs Gross Margin) muestran algo que no estaba documentado en el ticket: son <strong>dos páginas con fuentes de datos completamente distintas</strong>. La propia página de Gross Margin lo declara en sus comentarios:</p>
+  <div class="callout blue">"<em>Revenue here comes from the consumption table, not from the Revenue view, so the two pages are not directly comparable.</em>"</div>
+  <table class="m">
+    <thead><tr><th>Página del dashboard</th><th>Fuente real</th></tr></thead>
+    <tbody>
+      <tr><td class="mn">Revenue</td><td><code>fct_revenue_prorated_product</code> — el mismo que usó Fernando originalmente.</td></tr>
+      <tr><td class="mn">Gross Margin</td><td><code>fct_cons_and_order</code> / <code>product_end_date_gm_v4</code> — linaje de consumo, keyed on plan end date, completed eSIMs only.</td></tr>
+    </tbody>
+  </table>
+  <p class="txt">Los 163,57M€ que se venían usando como referencia en el ticket <strong>salen de la página Gross Margin</strong>, no de la página Revenue. Se confirmó reconstruyendo el revenue de <code>product_end_date_gm_v4</code> sobre la ventana:</p>
+  <button class="query-btn" onclick="document.getElementById('modal-q6-gm').classList.add('open')">▶ Ver query — revenue desde rpt_pricing_gm</button>
+  <div class="callout green"><strong>163.575.358 €</strong> vs 163.570.540 € de Pricing Monitoring — ratio <strong>1,00003</strong>. Match casi exacto.</div>
+
+  <div class="callout green"><strong>Conclusión:</strong> la pregunta "¿cuenta las dos plataformas o solo Shopify?" estaba mal planteada. No es un tema de filtro de plataforma — es que se estaba comparando <code>fct_revenue_prorated_product</code> contra un número que <strong>no sale de esa tabla</strong>. La hipótesis del core (92% de la brecha) queda descartada; era coincidencia numérica, no causa real.</div>
+  <div class="callout warn"><strong>Para comparar bien:</strong> si se quiere validar <code>fct_revenue_prorated_product</code>, hay que hacerlo contra la página <strong>Revenue</strong> del dashboard, no contra Gross Margin.</div>
+</div>
+
+<div class="section" id="s-p2">
+  <span class="section-num">Sección 4</span>
+  <h2 class="section-title">Pregunta 2 — OFR: tarifa plana por Europa <span class="status done">CONFIRMADA EN DATOS · CONTRATO PENDIENTE</span></h2>
+
+  <div class="sub-title">5.1 La tarifa plana existe y es verificable</div>
+  <p class="txt">En <code>dim_cost</code>, OFR tiene <strong>una única fila</strong> <code>price_type='Current'</code> para <code>country_code_iso3='EUR'</code>, a <strong>0,36368 €/GB</strong>. No hay desglose por país de origen para OFR/Europa — el bucket regional es la unidad de tarificación desde el proveedor. Además, <code>EUR</code> no existe en <code>dim_country</code>, así que tampoco hay una lista documentada de qué países cubre.</p>
+  <button class="query-btn" onclick="document.getElementById('modal-q2-tarifa').classList.add('open')">▶ Ver query — tarifa OFR/EUR en dim_cost</button>
+
+  <div class="sub-title">5.2 La caída de volumen: un escalón, no una tendencia</div>
+  <table class="m">
+    <thead><tr><th>Mes</th><th style="text-align:right">GB OFR</th><th style="text-align:right">GB bucket EUR</th><th style="text-align:right">Países</th></tr></thead>
+    <tbody>
+      <tr><td class="mn">2025-12</td><td class="num" style="text-align:right">3.719.240</td><td class="num" style="text-align:right">1.950.007</td><td class="num" style="text-align:right">84</td></tr>
+      <tr><td class="mn">2026-01</td><td class="num" style="text-align:right">3.382.697</td><td class="num" style="text-align:right">1.810.292</td><td class="num" style="text-align:right">87</td></tr>
+      <tr><td class="mn" style="color:var(--warn)">2026-02</td><td class="num" style="text-align:right;color:var(--warn)">816.648</td><td class="num" style="text-align:right;color:var(--warn)">480.211</td><td class="num" style="text-align:right;color:var(--warn)">87</td></tr>
+      <tr><td class="mn">2026-06</td><td class="num" style="text-align:right">71.930</td><td class="num" style="text-align:right">11.881</td><td class="num" style="text-align:right">70</td></tr>
+    </tbody>
+  </table>
+  <p class="txt">El corte real está entre <strong>enero y febrero 2026 (−75,9%)</strong>, no es degradación orgánica. El bucket EUR era el 53,5% del volumen residual de OFR en enero; en junio es marginal. Los países activos bajan de 87 a 67-70. El €/GB blended sube de 0,56 a 0,87 al perderse el volumen barato de EUR.</p>
+  <button class="query-btn" onclick="document.getElementById('modal-q2-evolucion').classList.add('open')">▶ Ver query — evolución mensual OFR (jul-2025 a ago-2026)</button>
+
+  <div class="callout warn"><strong>Requiere Comercial/Contratos:</strong> no hay ninguna referencia a "tarifa plana" o contrato de OFR en el repo (búsqueda vacía). Confirmar si el corte de febrero corresponde a un aviso de baja o cambio de contrato, y si se puede pedir desglose por país en adelante.</div>
+</div>
+
+<div class="section" id="s-p3">
+  <span class="section-num">Sección 5</span>
+  <h2 class="section-title">Pregunta 3 — Mapeo CMI=CHM, H3A=3AU <span class="status done">PREMISA DEL TICKET INCORRECTA</span></h2>
+  <p class="txt">El mapeo <strong>sí está documentado</strong>, literalmente, en 6 lugares de <code>dbt_project/models/mdm_landing/db_warehousedata.yml</code> (solo en <code>origin/dev</code>):</p>
+  <div class="callout blue">"Raw eSIM provider code as received from source. Corresponds to <code>current_macro_provider</code> before standardization: <strong>'CHM' maps to 'CMI', '3AU' maps to 'H3A'</strong>."</div>
+  <p class="txt">Y está implementado con un <code>CASE WHEN</code> de traducción en 11 archivos de modelo distintos. En <code>main</code>: cero ocurrencias de ambos strings.</p>
+  <button class="query-btn" onclick="document.getElementById('modal-q3-repo').classList.add('open')">▶ Ver — inspección de repo (git grep, main vs dev)</button>
+
+  <div class="sub-title">6.1 El problema real: no se puede resolver desde la dimensión de proveedor</div>
+  <p class="txt"><code>current_macro_provider</code> en <code>dim_cost</code> no sirve como mapeo — sus valores son <code>CMI/H3A/OFR/JSC/AIS</code>, nunca <code>CHM</code>/<code>3AU</code>. Y <code>dim_esim_provider</code> tampoco tiene columna de código raw.</p>
+  <button class="query-btn" onclick="document.getElementById('modal-q3-dims').classList.add('open')">▶ Ver query — current_macro_provider y dim_esim_provider</button>
+  <div class="callout green"><strong>Conclusión:</strong> la acción no es "crear documentación" (ya existe, en <code>dev</code>) sino <strong>añadir el código raw a <code>dim_esim_provider</code></strong> — el gap real es que la dimensión de proveedor no lo tiene, no que falte documentarlo.</div>
+  <div class="callout warn"><strong>Ojo con una trampa de nomenclatura:</strong> el workbook <code>dim_product_dictionary</code> (usado en la pregunta 4) también usa <code>CHM</code> — pero ahí es el <code>iso_code_carrier</code> del bundle regional "China + Hong Kong + Macau" (<code>esim-china-hong-kong-macau</code>), sin relación con el <code>esim_provider_code</code> raw que mapea a <code>CMI</code>. Mismo string, dos significados distintos en dos sistemas distintos.</div>
+</div>
+
+<div class="section" id="s-p4">
+  <span class="section-num">Sección 6</span>
+  <h2 class="section-title">Pregunta 4 — Diccionario de <code>country_code_iso3</code> no-país <span class="status done">RESUELTA</span></h2>
+  <p class="txt">202 códigos distintos en la ventana: <strong>191 ISO 3166-1 alpha-3 válidos + 11 no-ISO</strong>. No hay tabla de referencia ISO en el proyecto, así que el diff se hizo contra la lista canónica de 249 códigos oficiales.</p>
+  <button class="query-btn" onclick="document.getElementById('modal-q4-universo').classList.add('open')">▶ Ver query — universo de 202 códigos</button>
+  <button class="query-btn" onclick="document.getElementById('modal-q4-diff').classList.add('open')">▶ Ver script — diff contra ISO 3166-1 (Python)</button>
+
+  <table class="m">
+    <thead><tr><th>Código</th><th>En dim_country</th><th style="text-align:right">GB</th><th>Coste</th></tr></thead>
+    <tbody>
+      <tr><td class="mn">800</td><td>✅ "Not Specified"</td><td class="num" style="text-align:right">260.104</td><td>NULL</td></tr>
+      <tr><td class="mn">900</td><td>✅ "Not Found"</td><td class="num" style="text-align:right">250</td><td>NULL</td></tr>
+      <tr><td class="mn">EUR</td><td>❌ falta</td><td class="num" style="text-align:right">2.641.418</td><td>0,36368 €/GB</td></tr>
+      <tr><td class="mn">SCA</td><td>❌ falta</td><td class="num" style="text-align:right">10.359</td><td>NULL</td></tr>
+      <tr><td class="mn">EEU</td><td>❌ falta</td><td class="num" style="text-align:right">10</td><td>2,86321 €/GB</td></tr>
+      <tr><td class="mn">ANT</td><td>✅ Antillas Neerlandesas (ex)</td><td class="num" style="text-align:right">18.715</td><td>parcial</td></tr>
+      <tr><td class="mn">XAX</td><td>✅ Antillas Francesas (5 países)</td><td class="num" style="text-align:right">47.948</td><td>parcial</td></tr>
+      <tr><td class="mn">XBX</td><td>✅ Terr. Franceses Océano Índico (2)</td><td class="num" style="text-align:right">13.320</td><td>0,50 €/GB</td></tr>
+      <tr><td class="mn">XXX</td><td>✅ "Worldwide"</td><td class="num" style="text-align:right">7</td><td>NULL</td></tr>
+      <tr><td class="mn">RKS</td><td>✅ Kosovo (iso2='XK')</td><td class="num" style="text-align:right">29.826</td><td>204.310 €</td></tr>
+      <tr><td class="mn">XKX</td><td>❌ falta</td><td class="num" style="text-align:right">8.584</td><td>NULL</td></tr>
+    </tbody>
+  </table>
+  <button class="query-btn" onclick="document.getElementById('modal-q4-perfil').classList.add('open')">▶ Ver query — perfil de los 11 no-ISO</button>
+  <button class="query-btn" onclick="document.getElementById('modal-q4-dimcountry').classList.add('open')">▶ Ver query — presencia en dim_country (7 de 11)</button>
+  <button class="query-btn" onclick="document.getElementById('modal-q4-dimcost').classList.add('open')">▶ Ver query — presencia en dim_cost (explica los NULL de la pregunta 5)</button>
+
+  <div class="sub-title">7.1 EUR, SCA, EEU: sí están documentados — en otra fuente</div>
+  <p class="txt">No están en <code>dim_country</code>, pero sí en el workbook <code>dim_product_dictionary</code> (<a href="https://docs.google.com/spreadsheets/d/1fFfRB0vLRoEsSeRvfZ8Z5AIwnXLxk-8fhso5mk4Egos/edit?usp=sharing">link</a>), un diccionario de SKU/producto a ISO code mantenido fuera de BigQuery. Ahí figuran con <code>type='Region'</code>: son bundles regionales vendidos como producto, no países.</p>
+  <table class="m">
+    <thead><tr><th>Código</th><th>SKU</th><th>Nombre</th></tr></thead>
+    <tbody>
+      <tr><td class="mn">EUR</td><td><code>esim-europe</code></td><td>Europe</td></tr>
+      <tr><td class="mn">SCA</td><td><code>esim-scandinavia</code></td><td>Scandinavia</td></tr>
+      <tr><td class="mn">EEU</td><td><code>esim-eastern-europe</code></td><td>Eastern Europe</td></tr>
+    </tbody>
+  </table>
+  <p class="txt">La hoja <code>rules</code> de ese mismo workbook describe el proceso de construcción: se nutre de <code>Carrier_Center.current_jsc_destinations</code> y de <code>dim_country</code>, y usa este diccionario para estandarizar nombres ("vista antigua" de Shopify). Es decir, la información ya existe — simplemente no está sincronizada de vuelta a <code>dim_country</code>.</p>
+  <button class="query-btn" onclick="document.getElementById('modal-q4-workbook').classList.add('open')">▶ Ver extracto — dim_product_dictionary (hojas final_table y rules)</button>
+
+  <div class="sub-title">7.2 Los dos Kosovos: no es un residuo, es un conflicto entre dos fuentes</div>
+  <p class="txt">Se usan ambos. La fila <code>RKS</code> de <code>dim_country</code> lleva <code>country_code_iso2 = 'XK'</code>; <code>XKX</code> es ese mismo <code>XK</code> rellenado a 3 caracteres por otra rama del código. Hasta acá parecía que <code>XKX</code> era simplemente el sobrante. Pero el workbook <code>dim_product_dictionary</code> declara <code>XKX</code> — no <code>RKS</code> — como el <code>iso_code_3</code> canónico para el SKU <code>esim-kosovo</code> (<code>type='Country'</code>).</p>
+  <div class="callout warn"><strong>No es un error a corregir, es un desacuerdo real entre dos fuentes de verdad:</strong> el lado de costeo de Carriers (<code>dim_country</code>, <code>dim_cost</code>) usa <code>RKS</code>; el lado de producto/SKU (este workbook) usa <code>XKX</code>. Eso explicaría por qué <code>XKX</code> sigue vivo en consumo hasta junio — viene del catálogo de producto, no es un resto a limpiar.</div>
+  <div class="callout green"><strong>Pendiente real de esta pregunta:</strong> agregar <code>EUR</code>, <code>SCA</code>, <code>EEU</code> a <code>dim_country</code> (ya documentados en el workbook, solo falta sincronizar), y definir con Carriers/Producto cuál de los dos códigos de Kosovo es el vigente antes de decidir si migrar volumen de uno a otro.</div>
+</div>
+
+<div class="section" id="s-p5">
+  <span class="section-num">Sección 7</span>
+  <h2 class="section-title">Pregunta 5 — Códigos 800/900 "sin costo" <span class="status done">RESUELTA — Y CORREGIDO EL ENUNCIADO</span></h2>
+  <div class="callout warn"><strong>Corrección al enunciado:</strong> el coste no es cero, es <strong>NULL</strong>. Es un <code>LEFT JOIN</code> que no encuentra fila en la dimensión de coste — no una tarifa cero-rated. <code>rows_cost_zero = 0</code> en absolutamente todos los códigos.</p></div>
+  <button class="query-btn" onclick="document.getElementById('modal-q5-nullvszero').classList.add('open')">▶ Ver query — NULL vs cero vs positivo, por código</button>
+
+  <p class="txt"><code>800</code> y <code>900</code> son 100% NULL, pero <strong>no son los únicos</strong>: también <code>SCA</code>, <code>XKX</code>, <code>MNP</code>, <code>XXX</code>, <code>LBN</code>, <code>BDI</code>, <code>SSD</code>, <code>VEN</code>, <code>KIR</code>, <code>GMB</code> — 100% NULL. Y hay parciales: <code>USA</code> (17/21.188), <code>ESP</code>, <code>TUR</code> (0,21%), <code>FRO</code> (49,54%), entre otros.</p>
+  <button class="query-btn" onclick="document.getElementById('modal-q5-verif').classList.add('open')">▶ Ver query — verificación puntual (FRO, TUR, EUR, MNP)</button>
+
+  <div class="sub-title">8.1 Causa raíz</div>
+  <p class="txt"><code>800</code> y <code>900</code> no existen en <code>dim_cost</code> ni en <code>dim_costs</code> — el <code>LEFT JOIN</code> de coste no encuentra match. Origen en el código (solo en <code>dev</code>):</p>
+  <ul style="font-size:13.5px;color:var(--cs);line-height:1.7;padding-left:20px;margin-bottom:12px">
+    <li><strong>OFR</strong> — <code>COALESCE(co.product_country, '800')</code>, con comentario propio del modelo: "'800' (unknown) is used when no order matches".</li>
+    <li><strong>CORE</strong> — <code>IF(consumption.hni IS NULL, '800', '900')</code> cuando no hay match en la dimensión PLMN. Es decir: <strong>800 = no hay HNI en absoluto</strong>, <strong>900 = hay HNI pero no está mapeado</strong>.</li>
+  </ul>
+  <button class="query-btn" onclick="document.getElementById('modal-q5-causa').classList.add('open')">▶ Ver — confirmación en dim_cost/dim_costs + inspección de repo</button>
+  <div class="callout blue"><strong>900 es el más accionable:</strong> "red identificada pero sin mapear" se arregla agregando el HNI a <code>dim_cost_plmn</code>.</div>
+
+  <div class="sub-title">8.2 Impacto total</div>
+  <button class="query-btn" onclick="document.getElementById('modal-q5-impacto').classList.add('open')">▶ Ver query — impacto total del hueco de tarificación</button>
+  <div class="callout green"><strong>297.380 GB sin costo = 0,426%</strong> del volumen total (69.872.113 GB), en <strong>2,93%</strong> de las filas (28.652 de 978.846). Pequeño en relativo, no despreciable en absoluto — y con causa raíz clara y accionable para el caso 900.</div>
+</div>
+
+<div class="section" id="s-p7">
+  <span class="section-num">Sección 8</span>
+  <h2 class="section-title">Pregunta 7 — Fix de descripción <span class="status done">LOCALIZADO · NO APLICADO</span></h2>
+  <p class="txt">La descripción de <code>consumption_cost_per_day</code> apunta a una tabla inexistente. Confirmado: no existe ninguna <code>..._agg_country_provider</code> en ninguno de los dos proyectos.</p>
+  <button class="query-btn" onclick="document.getElementById('modal-q7-tablas').classList.add('open')">▶ Ver query — tablas reales existentes</button>
+  <button class="query-btn" onclick="document.getElementById('modal-q7-desc').classList.add('open')">▶ Ver — descripción desplegada en BigQuery + localización en repo</button>
+
+  <p class="txt">Archivo: <code>dbt_project/models/dp_consumption/schema.yml</code> (línea 11), solo existe en <code>origin/dev</code>. Un segundo error, destapado por la pregunta 4, está en el mismo archivo (líneas 20 y 58): describe <code>country_code_iso3</code> como "ISO 3166-1 alpha-3 country code" a secas, cuando es falso para 11 de los 202 valores — incluidos los centinelas 800/900 con coste NULL.</p>
+  <button class="query-btn" onclick="document.getElementById('modal-q7-parche').classList.add('open')">▶ Ver — parche propuesto (no aplicado)</button>
+  <div class="callout warn">Ambos errores están en el mismo archivo — podrían resolverse en un mismo PR. No se aplicó ningún cambio: esto es diagnóstico y parche propuesto únicamente.</div>
+</div>
+
+<div class="section" id="s-p8">
+  <span class="section-num">Sección 9</span>
+  <h2 class="section-title">Pregunta 8 — <code>dim_cost</code> vs <code>dim_costs</code> <span class="status done">RESUELTA</span></h2>
+  <p class="txt">Las 5 variantes se reconstruyen a diario (16:16-16:18, vía Composer). <strong>Ninguna es huérfana</strong> — el criterio "cuál tiene scheduled query activa" no discrimina. Lo que sí discrimina es la <code>description</code> propia de cada tabla en BigQuery.</p>
+  <button class="query-btn" onclick="document.getElementById('modal-q8-inventario').classList.add('open')">▶ Ver query — inventario de variantes</button>
+  <button class="query-btn" onclick="document.getElementById('modal-q8-frescura').classList.add('open')">▶ Ver query — frescura y tamaño</button>
+  <button class="query-btn" onclick="document.getElementById('modal-q8-jobs').classList.add('open')">▶ Ver query — quién las escribe (JOBS_BY_PROJECT)</button>
+
+  <table class="m">
+    <thead><tr><th>Tabla</th><th style="text-align:right">Filas</th><th>Estado</th><th>Seed</th></tr></thead>
+    <tbody>
+      <tr><td class="mn">dim_cost</td><td class="num" style="text-align:right">3.177</td><td>✅ vigente</td><td><code>master_cost.csv</code></td></tr>
+      <tr><td class="mn">dim_costs</td><td class="num" style="text-align:right">3.177</td><td>⚠️ "will be deprecated"</td><td>—</td></tr>
+      <tr><td class="mn">dim_cost_hni</td><td class="num" style="text-align:right">111</td><td>✅ vigente</td><td><code>master_cost.csv</code></td></tr>
+      <tr><td class="mn">dim_costs_hni</td><td class="num" style="text-align:right">107</td><td>⚠️ "will be deprecated"</td><td><code>master_costs.csv</code></td></tr>
+      <tr><td class="mn">dim_cost_plmn</td><td class="num" style="text-align:right">138.882</td><td>✅ vigente (lógica 2026+)</td><td>—</td></tr>
+    </tbody>
+  </table>
+  <button class="query-btn" onclick="document.getElementById('modal-q8-desc').classList.add('open')">▶ Ver — descriptions completas (bq show)</button>
+  <p class="txt"><code>dim_cost</code> y <code>dim_costs</code> tienen exactamente las mismas 3.177 filas: la migración de datos ya está hecha, solo falta apagar las viejas.</p>
+
+  <div class="callout warn"><strong>Salvedad crítica antes de apagar nada:</strong> <code>gold_fct_ofr_consumption.sql</code> (línea 126, solo en <code>dev</code>) hace <code>LEFT JOIN {{ ref('gold_dim_costs') }}</code> — <strong>todo el coste de OFR se calcula hoy contra la dimensión marcada como deprecada</strong>. Hay que repuntar ese modelo a <code>gold_dim_cost</code> antes de retirar <code>dim_costs</code>.</div>
+  <button class="query-btn" onclick="document.getElementById('modal-q8-salvedad').classList.add('open')">▶ Ver — consumidor vivo de dim_costs (inspección de repo)</button>
+
+  <div class="callout green"><strong>Para Carriers (tarifa mayorista):</strong> usar <code>dim_cost</code> filtrando <code>price_type = 'Current' AND flag_main_operator = TRUE</code>, tal como indica su propia description.</div>
+  <button class="query-btn" onclick="document.getElementById('modal-q8-carriers').classList.add('open')">▶ Ver query — tarifa mayorista vigente para Carriers</button>
+</div>
+
+<div class="section" id="s-p9">
+  <span class="section-num">Sección 10</span>
+  <h2 class="section-title">Pregunta 9 — <code>consumption_type = 'local'</code> en OFR <span class="status done">RESUELTA — REQUIERE CARRIERS</span></h2>
+  <p class="txt">Dos correcciones al enunciado del ticket:</p>
+
+  <div class="sub-title">11.1 No es puntual de enero — persiste y crece</div>
+  <table class="m">
+    <thead><tr><th>Mes</th><th style="text-align:right">% local (GB)</th></tr></thead>
+    <tbody>
+      <tr><td class="mn">2026-01</td><td class="num" style="text-align:right">13,6%</td></tr>
+      <tr><td class="mn">2026-02</td><td class="num" style="text-align:right">11,5%</td></tr>
+      <tr><td class="mn">2026-03</td><td class="num" style="text-align:right">14,0%</td></tr>
+      <tr><td class="mn">2026-04</td><td class="num" style="text-align:right">16,8%</td></tr>
+      <tr><td class="mn">2026-05</td><td class="num" style="text-align:right">19,1%</td></tr>
+      <tr><td class="mn" style="color:var(--warn)">2026-06</td><td class="num" style="text-align:right;color:var(--warn)">25,2%</td></tr>
+    </tbody>
+  </table>
+  <button class="query-btn" onclick="document.getElementById('modal-q9-mensual').classList.add('open')">▶ Ver query — evolución mensual local vs roaming</button>
+
+  <div class="sub-title">11.2 "Mismo costo que roaming" es cierto — pero por una razón más fuerte</div>
+  <p class="txt">El €/GB blended sí difiere mes a mes (0,376 vs 0,589 en enero), pero es <strong>puro efecto mix de países</strong> — local se concentra en el bucket EUR barato. Controlando por país, el ratio local/roaming es <strong>exactamente 1,0000</strong> en los 7 países con volumen relevante en ambos tipos.</p>
+  <button class="query-btn" onclick="document.getElementById('modal-q9-porpais').classList.add('open')">▶ Ver query — ratio por país (descarta tarifa distinta)</button>
+
+  <div class="callout blue"><strong>Por qué es exactamente 1,0000:</strong> el join de coste de OFR usa como llave <code>país + fecha + proveedor + flag_main_operator</code>. <code>consumption_type</code> <strong>no participa</strong>. El modelo es incapaz de diferenciar local de roaming aunque el contrato lo exigiera.</div>
+  <button class="query-btn" onclick="document.getElementById('modal-q9-construccion').classList.add('open')">▶ Ver — el join de coste OFR (inspección de repo)</button>
+
+  <p class="txt"><code>consumption_type</code> es un passthrough crudo del CDR de Orange (<code>type AS consumption_type</code>), no una clasificación de Holafly. El feed trae además un tercer valor <code>'all'</code> (duplicado de roaming+local) que se descarta.</p>
+  <button class="query-btn" onclick="document.getElementById('modal-q9-passthrough').classList.add('open')">▶ Ver — origen del campo en el CDR (inspección de repo)</button>
+
+  <div class="callout warn"><strong>Requiere Carriers/OFR (Orange):</strong> qué significa <code>type</code> en su CDR y si el contrato prevé tarifa distinta para consumo local. Si la prevé, hoy no se está aplicando — y con 'local' ya en 25,2% del volumen OFR en junio, la exposición crece cada mes.</div>
+</div>
+
+<div class="section" id="s4">
+  <span class="section-num">Sección 11</span>
+  <h2 class="section-title">Resumen de estado</h2>
+  <table class="m">
+    <thead><tr><th style="width:36px">#</th><th>Estado</th><th>Requiere confirmación humana</th></tr></thead>
+    <tbody>
+      <tr><td class="mn">1</td><td>Es Data cost, no Total cost — reconciliado a 4 decimales</td><td>No</td></tr>
+      <tr><td class="mn">2</td><td>Tarifa plana confirmada en datos; corte ene→feb sin explicación en el repo</td><td>Comercial/Contratos</td></tr>
+      <tr><td class="mn">3</td><td>Premisa incorrecta: sí está documentado en dev (la rama de trabajo); falta agregarlo a dim_esim_provider</td><td>No</td></tr>
+      <tr><td class="mn">4</td><td>11 códigos no-ISO clasificados; faltan 4 en dim_country; XKX es residual de RKS</td><td>No</td></tr>
+      <tr><td class="mn">5</td><td>Es NULL (no cero); causa raíz clara; 900 es accionable vía dim_cost_plmn</td><td>No</td></tr>
+      <tr><td class="mn">6</td><td>Son dos linajes de revenue distintos, no un tema de plataforma</td><td>No</td></tr>
+      <tr><td class="mn">7</td><td>Localizado en dev, parche propuesto, no aplicado</td><td>No</td></tr>
+      <tr><td class="mn">8</td><td>dim_cost*/dim_cost_plmn vigentes; dim_costs* deprecadas pero con un consumidor vivo</td><td>No</td></tr>
+      <tr><td class="mn">9</td><td>Persistente y creciente; ratio 1,0000 es por construcción del join, no por contrato confirmado</td><td>Carriers/OFR</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="bottom">
+  <p><strong>Metodología:</strong> todas las cifras de este documento surgen de queries corridas directamente contra las tablas de BigQuery listadas en la sección 1, sobre la ventana 2026-01-01 a 2026-06-30. No se asumió ningún resultado sin verificación empírica.</p>
+  <div class="bottom-sig">PPC-156 <span class="pink">·</span> Pricing</div>
+</div>
+
+</div>
+
+<div class="modal-overlay" id="modal-q1-totales">
+  <div class="modal-box">
+    <div class="modal-head"><span>QUERY — TOTALES AGREGADOS SIN JOIN</span><button class="modal-close" onclick="document.getElementById('modal-q1-totales').classList.remove('open')">×</button></div>
+    <div class="modal-body"><pre>SELECT 'detallada' AS fuente,
+  SUM(total_volume_gb)       AS gb,
+  SUM(total_volume_cost_eur) AS cost_eur
+FROM `hly--data--looker--79.dp_consumptions.fct_cons_and_order`
+WHERE channel = 'B2C'
+  AND utc_date BETWEEN '2026-01-01' AND '2026-06-30'
+
+UNION ALL
+
+SELECT 'preagregada' AS fuente,
+  SUM(total_volume)/POW(1024,3) AS gb,
+  SUM(total_cost_eur)           AS cost_eur
+FROM `hly--data--pro--57.dp_consumption.consumption_cost_per_day_provider_country_bundle`
+WHERE utc_date BETWEEN '2026-01-01' AND '2026-06-30';
+
+-- preagregada: 69.872.112,90 GB · 52.121.845,82 EUR
+-- detallada:   63.694.290,20 GB · 45.777.401,61 EUR
+-- ratio GB ~0,912 · ratio cost ~0,878 → gap real, no ruido de join</pre></div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-q1-channel">
+  <div class="modal-box">
+    <div class="modal-head"><span>QUERY — VOLUMEN 3AU POR CANAL</span><button class="modal-close" onclick="document.getElementById('modal-q1-channel').classList.remove('open')">×</button></div>
+    <div class="modal-body"><pre>-- Paso previo: profiling de bundle_name en la preagregada
+SELECT
+  bundle_name LIKE '%B2B%' AS es_b2b,
+  SUM(total_volume)/POW(1024,3) AS gb,
+  SUM(total_cost_eur)           AS cost_eur
+FROM `hly--data--pro--57.dp_consumption.consumption_cost_per_day_provider_country_bundle`
+WHERE utc_date BETWEEN '2026-01-01' AND '2026-06-30'
+GROUP BY 1;
+-- false: 64.871.682,91 GB / 49.150.407,63 EUR  (grueso del volumen)
+-- null:   4.882.113,68 GB / 2.807.939,15 EUR   (= volumen OFR sin bundle_name conocido)
+-- true:     118.316,31 GB /   163.499,04 EUR   (B2B, marginal)
+
+-- Paso que reveló la causa: volumen de 3AU por canal en fct_cons_and_order
+SELECT
+  channel,
+  COUNT(*) AS filas,
+  SUM(total_volume_gb) AS gb
+FROM `hly--data--looker--79.dp_consumptions.fct_cons_and_order`
+WHERE esim_provider_code = '3AU'
+  AND utc_date BETWEEN '2026-01-01' AND '2026-06-30'
+GROUP BY channel
+ORDER BY gb DESC;
+-- B2C:          26.894.824,18 GB
+-- Subscription:  5.529.063,96 GB  <- excluido por el filtro channel='B2C'
+-- B2B:              77.356,46 GB
+-- null:             18.511,53 GB
+-- 26.894.824 + 5.529.064 = 32.423.888 GB vs 32.402.589 GB (preagregada) -> ratio 0,9993</pre></div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-q1-final">
+  <div class="modal-box">
+    <div class="modal-head"><span>QUERY — RECONCILIACIÓN FINAL POR PROVEEDOR</span><button class="modal-close" onclick="document.getElementById('modal-q1-final').classList.remove('open')">×</button></div>
+    <div class="modal-body"><pre>SELECT
+  'detallada' AS fuente, esim_provider_code AS provider,
+  SUM(total_volume_gb)       AS gb,
+  SUM(total_volume_cost_eur) AS cost_eur,
+  SAFE_DIVIDE(SUM(total_volume_cost_eur), SUM(total_volume_gb)) AS eur_per_gb
+FROM `hly--data--looker--79.dp_consumptions.fct_cons_and_order`
+WHERE channel IN ('B2C', 'Subscription')
+  AND utc_date BETWEEN '2026-01-01' AND '2026-06-30'
+GROUP BY provider
+
+UNION ALL
+
+SELECT
+  'preagregada' AS fuente, esim_provider_code,
+  SUM(total_volume)/POW(1024,3) AS gb,
+  SUM(total_cost_eur)           AS cost_eur,
+  SAFE_DIVIDE(SUM(total_cost_eur), SUM(total_volume)/POW(1024,3)) AS eur_per_gb
+FROM `hly--data--pro--57.dp_consumption.consumption_cost_per_day_provider_country_bundle`
+WHERE utc_date BETWEEN '2026-01-01' AND '2026-06-30'
+  AND bundle_name NOT LIKE '%B2B%'
+  AND bundle_name IS NOT NULL
+GROUP BY esim_provider_code
+ORDER BY fuente, esim_provider_code;
+
+-- 3AU/H3A: 0,90121 vs 0,90115 EUR/GB (dif. 0,007%)
+-- CHM/CMI: 0,61443 vs 0,61445 EUR/GB (dif. 0,003%)
+-- Reconciliado. total_cost_eur = data cost, confirmado por el comment
+-- del script del dashboard: "SUM(total_volume_cost_eur) AS data_cost -- data cost only (bug fix)"</pre></div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-q6-mart">
+  <div class="modal-box">
+    <div class="modal-head"><span>QUERY — MART_PRICING_REVENUE REPLICADO</span><button class="modal-close" onclick="document.getElementById('modal-q6-mart').classList.remove('open')">×</button></div>
+    <div class="modal-body"><pre>SELECT
+  ROUND(SUM(IF(source_event_type = 'payment', net_revenue_eur, 0)), 2) AS payment_only,
+  ROUND(SUM(IF(source_event_type = 'refund', -net_revenue_eur, 0)), 2) AS refunds,
+  ROUND(SUM(net_revenue_eur), 2) AS net_of_refunds
+FROM `hly--data--pro--57.dp_revenue.fct_revenue_prorated_product`
+WHERE is_revenue_confirmed = TRUE
+  AND is_synthetic         = FALSE
+  AND payment_type         = 'one_time_order'
+  AND product_type         = 'trip'
+  AND business_line        = 'b2c'
+  AND DATE(utc_datetime) BETWEEN '2026-01-01' AND '2026-06-30';
+
+-- payment_only:    177.241.892,20
+-- refunds:           7.337.079,68
+-- net_of_refunds:  169.904.812,52  -> ratio 1,0387 vs Pricing Monitoring
+-- Peor que el mejor proxy previo (165,7M, ratio 1,013). Este filtro NO es el correcto.</pre></div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-q6-gm">
+  <div class="modal-box">
+    <div class="modal-head"><span>QUERY — REVENUE DESDE RPT_PRICING_GM</span><button class="modal-close" onclick="document.getElementById('modal-q6-gm').classList.remove('open')">×</button></div>
+    <div class="modal-body"><pre>SELECT
+  ROUND(SUM(total_net_revenue), 2) AS net_revenue_gm_v4
+FROM `hly--data--looker--79.dp_consumptions.rpt_pricing_gm`
+WHERE end_date BETWEEN '2026-01-01' AND '2026-06-30';
+
+-- net_revenue_gm_v4: 163.575.358,40
+-- vs Pricing Monitoring: 163.570.540,00
+-- ratio: 1,00003 -> match casi exacto.
+-- Confirma que la página Gross Margin del dashboard lee de este linaje
+-- (fct_cons_and_order / product_end_date_gm_v4), no de fct_revenue_prorated_product.</pre></div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-q2-tarifa">
+  <div class="modal-box">
+    <div class="modal-head"><span>QUERY — TARIFA OFR/EUR EN DIM_COST</span><button class="modal-close" onclick="document.getElementById('modal-q2-tarifa').classList.remove('open')">×</button></div>
+    <div class="modal-body"><pre>SELECT
+  country_code_iso3,
+  esim_provider_code,
+  COUNT(*)                                                     AS n,
+  ROUND(MIN(cost),5)                                           AS min_cost,
+  ROUND(MAX(cost),5)                                           AS max_cost,
+  STRING_AGG(DISTINCT price_type ORDER BY price_type LIMIT 3)  AS price_types
+FROM `hly--data--pro--57.mdm_gold.dim_cost`
+WHERE country_code_iso3 = "EUR"
+GROUP BY 1,2
+ORDER BY 2;
+
+-- EUR  CMI  12  0.71922  2.29605  Current,Old
+-- EUR  H3A   7  0.49000  1.90772  Current,Old
+-- EUR  OFR   1  0.36368  0.36368  Current      <- tarifa plana: 1 fila, sin desglose
+--
+-- OFR tiene exactamente UNA fila 'Current' para todo 'EUR'. No hay filas por
+-- país para OFR/Europa: el desglose no existe en origen. Además 'EUR' no está
+-- en mdm_gold.dim_country, así que tampoco hay lista documentada de qué
+-- países cubre el bucket.</pre></div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-q2-evolucion">
+  <div class="modal-box">
+    <div class="modal-head"><span>QUERY — EVOLUCIÓN MENSUAL OFR (JUL-2025 → AGO-2026)</span><button class="modal-close" onclick="document.getElementById('modal-q2-evolucion').classList.remove('open')">×</button></div>
+    <div class="modal-body"><pre>SELECT
+  FORMAT_DATE("%Y-%m", utc_date)                                            AS mes,
+  ROUND(SUM(total_volume)/POW(1024,3),1)                                    AS gb_ofr,
+  ROUND(SUM(total_cost_eur),2)                                              AS cost_ofr,
+  COUNT(DISTINCT country_code_iso3)                                         AS paises,
+  ROUND(SUM(IF(country_code_iso3="EUR", total_volume, 0))/POW(1024,3),1)    AS gb_eur_bucket
+FROM `hly--data--pro--57.dp_consumption.consumption_cost_per_day_provider_country_bundle`
+WHERE esim_provider_code = "OFR"
+  AND utc_date BETWEEN "2025-07-01" AND "2026-08-18"
+GROUP BY 1
+ORDER BY 1;
+
+-- mes      gb_ofr      cost_ofr     paises  gb_eur_bucket
+-- 2025-08  1409711.4    717108.74      88      769652.9
+-- 2025-09  4357658.2   2099344.32      87     2769882.0
+-- 2025-10  2369533.0   1313687.92      88     1484319.3
+-- 2025-11  2798906.9   1442462.57      86     1524144.2
+-- 2025-12  3719239.7   1965902.04      84     1950006.6
+-- 2026-01  3382697.0   1895106.95      87     1810291.5
+-- 2026-02   816647.9    503984.22      87      480210.7   <- corte -75,9%
+-- 2026-03   397771.9    203278.29      83      252845.5
+-- 2026-04   140822.0     86018.42      78       68268.8
+-- 2026-05    72244.7     56929.51      73       17920.2
+-- 2026-06    71930.2     62621.76      70       11881.1
+-- 2026-07    61670.8     52158.93      73        8892.3
+-- 2026-08    34462.1     29994.93      67        4239.2  (parcial, hasta 18-ago)
+--
+-- La ventana se amplió a propósito para ver el punto de corte, que queda
+-- fuera de rango si se mira solo ene-jun 2026.
+--
+-- Búsqueda de documentación contractual (inspección de repo, no SQL):
+-- $ git grep -inE "flat.?rate|tarifa plana|OFR contract|contrato" origin/dev -- "dbt_project"
+--   -> 0 resultados</pre></div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-q3-repo">
+  <div class="modal-box">
+    <div class="modal-head"><span>INSPECCIÓN DE REPO — GIT GREP, MAIN VS DEV</span><button class="modal-close" onclick="document.getElementById('modal-q3-repo').classList.remove('open')">×</button></div>
+    <div class="modal-body"><pre>$ git grep -nE "'CHM'|\"CHM\"|'3AU'|\"3AU\"" origin/dev -- "dbt_project/models" "dbt_project/seeds"
+
+DOCUMENTACIÓN EXPLÍCITA — 6 ocurrencias, todas en:
+  dbt_project/models/mdm_landing/db_warehousedata.yml  (líneas 41,113,181,241,313,381)
+
+  description: "Raw eSIM provider code as received from source.
+                Corresponds to current_macro_provider before standardization:
+                'CHM' maps to 'CMI', '3AU' maps to 'H3A'."
+
+IMPLEMENTACIÓN — 11 ficheros con el CASE de traducción, p.ej.:
+  mdm_silver/carriers/consumption/silver_legacy_consumption.sql:39-40
+  mdm_silver/carriers/costs (DEPRECATE)/silver_carrier_costs.sql:13-14,28-29,32-33
+  mdm_silver/master/costs (DEPRECATE)/silver_master_costs.sql:13-14,28-29,32-33
+  mdm_silver/monit/silver_agg_legacy_consumption_day.sql:20-21
+  mdm_silver/sheet_carriers (DEPRECATE)/silver_plmn_costs.sql:18-19
+  mdm_steel/holafly/warehouse/warehousedata/steel_legacy_*_warehouse.sql:22-23
+
+      CASE WHEN provider = '3AU' THEN 'H3A'
+           WHEN provider = 'CHM' THEN 'CMI'
+
+CONTRASTE main vs dev:
+$ git grep -cE "'CHM' maps to 'CMI'" main -- "dbt_project/models"          -> 0
+$ git grep -cE "'CHM' maps to 'CMI'" origin/dev -- "dbt_project/models"   -> 6
+$ git grep -lE "WHEN provider = 'CHM' THEN 'CMI'" main       | wc -l      -> 0
+$ git grep -lE "WHEN provider = 'CHM' THEN 'CMI'" origin/dev | wc -l      -> 11
+$ git rev-list --count main..origin/dev                                  -> 803
+
+=> main está 803 commits por detrás de dev. La documentación existe, pero no
+   es visible desde main.</pre></div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-q3-dims">
+  <div class="modal-box">
+    <div class="modal-head"><span>QUERY — CURRENT_MACRO_PROVIDER Y DIM_ESIM_PROVIDER</span><button class="modal-close" onclick="document.getElementById('modal-q3-dims').classList.remove('open')">×</button></div>
+    <div class="modal-body"><pre>SELECT
+  esim_provider_code,
+  current_macro_provider,
+  COUNT(*)                          AS n,
+  COUNT(DISTINCT country_code_iso3) AS paises
+FROM `hly--data--pro--57.mdm_gold.dim_cost`
+GROUP BY 1,2
+ORDER BY 1,2;
+
+-- esim_provider_code  current_macro_provider    n  paises
+-- AIS                 AIS                       4       4
+-- CMI                 CMI                    1487     173
+-- CMI                 JSC                      25      24
+-- H3A                 H3A                    1198     317
+-- H3A                 JSC                       2       2
+-- OFR                 JSC                       1       1
+-- OFR                 OFR                     460     216
+--
+-- Los valores son CMI/H3A/OFR/JSC/AIS. NUNCA aparecen 'CHM' ni '3AU'.
+-- current_macro_provider NO es el mapeo raw->estándar.
+
+SELECT esim_provider_code, esim_provider_name
+FROM `hly--data--pro--57.mdm_gold.dim_esim_provider`
+ORDER BY 1;
+
+-- CMI  China Mobile International
+-- H3A  Hutchison Drei Austria
+--
+-- Schema completo: esim_provider_code, esim_provider_name, array_imsi_prefixes.
+-- NO hay columna de código raw. No se puede resolver CHM/3AU desde acá.</pre></div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-q4-universo">
+  <div class="modal-box">
+    <div class="modal-head"><span>QUERY — UNIVERSO DE 202 CÓDIGOS</span><button class="modal-close" onclick="document.getElementById('modal-q4-universo').classList.remove('open')">×</button></div>
+    <div class="modal-body"><pre>SELECT
+  country_code_iso3,
+  COUNT(*)                                                           AS rows_n,
+  ROUND(SUM(total_volume)/POW(1024,3),2)                             AS gb,
+  ROUND(SUM(total_cost_eur),2)                                       AS cost_eur,
+  COUNT(DISTINCT esim_provider_code)                                 AS providers,
+  STRING_AGG(DISTINCT esim_provider_code ORDER BY esim_provider_code LIMIT 6) AS provider_list
+FROM `hly--data--pro--57.dp_consumption.consumption_cost_per_day_provider_country_bundle`
+WHERE utc_date BETWEEN "2026-01-01" AND "2026-06-30"
+GROUP BY 1
+ORDER BY gb DESC;
+
+-- 202 filas. Top: USA 6.971.368 GB, CHN 5.334.269, JPN 4.429.609, ESP 3.358.016,
+-- ITA 2.836.532, FRA 2.710.857, EUR 2.641.418 (!), MAR 2.543.162, THA 2.534.539...
+-- 'EUR' entra en 7ª posición por volumen siendo un bucket regional, no un país.</pre></div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-q4-diff">
+  <div class="modal-box">
+    <div class="modal-head"><span>SCRIPT — DIFF CONTRA ISO 3166-1 (PYTHON)</span><button class="modal-close" onclick="document.getElementById('modal-q4-diff').classList.remove('open')">×</button></div>
+    <div class="modal-body"><pre>"""
+No hay tabla ISO de referencia en el proyecto y pycountry no está instalado,
+así que la lista canónica de 249 códigos oficialmente asignados va embebida.
+
+Entrada: /tmp/codes_cons.txt, generado con:
+  bq query --use_legacy_sql=false --format=csv --project_id=hly--data--pro--57 \
+    'SELECT DISTINCT country_code_iso3
+     FROM `hly--data--pro--57.dp_consumption.consumption_cost_per_day_provider_country_bundle`
+     WHERE utc_date BETWEEN "2026-01-01" AND "2026-06-30"' \
+    | tail -n +2 | sort > /tmp/codes_cons.txt
+"""
+
+ISO3 = set("""ABW AFG AGO ... ZAF ZMB ZWE""".split())  # 249 códigos ISO 3166-1 alpha-3
+
+WITHDRAWN = {
+    "ANT": "Netherlands Antilles — withdrawn 2010, split into CUW/SXM/BES",
+    "SCG": "Serbia and Montenegro — withdrawn 2006",
+    "ZAR": "Zaire — withdrawn 1997",
+}
+USER_ASSIGNED_NOTE = "user-assigned range XAA-XZZ (private use, never ISO-official)"
+
+with open("/tmp/codes_cons.txt") as f:
+    codes = sorted({line.strip() for line in f if line.strip()})
+
+valid, invalid = [], []
+for c in codes:
+    (valid if c in ISO3 else invalid).append(c)
+# clasifica cada inválido: withdrawn-ISO / user-assigned / internal-sentinel / non-ISO-regional
+
+-- Salida (2026-08-19):
+--   Total distinct codes : 202
+--   Valid ISO 3166-1 a-3 : 191
+--   NON-ISO              : 11
+--   800/900              internal-sentinel  (numérico, ni siquiera es código ISO)
+--   ANT                  withdrawn-ISO
+--   EEU, EUR, RKS, SCA    non-ISO / regional
+--   XAX, XBX, XKX, XXX    user-assigned (rango XAA-XZZ)</pre></div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-q4-perfil">
+  <div class="modal-box">
+    <div class="modal-head"><span>QUERY — PERFIL DE LOS 11 NO-ISO</span><button class="modal-close" onclick="document.getElementById('modal-q4-perfil').classList.remove('open')">×</button></div>
+    <div class="modal-body"><pre>SELECT
+  country_code_iso3,
+  esim_provider_code,
+  ROUND(SUM(total_volume)/POW(1024,3),1) AS gb,
+  ROUND(SUM(total_cost_eur),2)           AS cost,
+  COUNTIF(total_cost_eur IS NULL)        AS n_null,
+  COUNT(*)                               AS n,
+  MIN(utc_date)                          AS desde,
+  MAX(utc_date)                          AS hasta
+FROM `hly--data--pro--57.dp_consumption.consumption_cost_per_day_provider_country_bundle`
+WHERE utc_date BETWEEN "2026-01-01" AND "2026-06-30"
+  AND country_code_iso3 IN ("EUR","SCA","EEU","800","900","XAX","XBX","XXX","ANT","RKS","XKX")
+GROUP BY 1,2
+ORDER BY 1,2;
+
+-- code prov      gb        cost      n_null    n   desde       hasta
+-- 800  CMI  194735.6      (null)     21764  21764  2026-01-01  2026-06-30
+-- 800  H3A   63226.6      (null)      2528   2528  2026-01-01  2026-06-30
+-- 800  OFR    2142.1      (null)       181    181  2026-01-01  2026-06-30
+-- 900  CMI     247.1      (null)      1380   1380  2026-01-01  2026-06-30
+-- 900  H3A       3.0      (null)       280    280  2026-01-01  2026-06-30
+-- ANT  CMI   13973.8      (null)       498    498  2026-01-03  2026-06-30
+-- ANT  H3A    4296.3    21927.68         0   1579  2026-01-01  2026-06-30
+-- ANT  OFR     445.0     1334.95         0    179  2026-01-01  2026-06-30
+-- EEU  OFR      10.3       29.52         0     14  2026-01-03  2026-03-21
+-- EUR  OFR 2641417.7   960626.79         0    181  2026-01-01  2026-06-30
+-- RKS  H3A   29826.3   204309.87         0    428  2026-01-01  2026-04-30  <- corta en abril
+-- SCA  OFR   10358.7      (null)       149    149  2026-01-01  2026-06-16
+-- XAX  CMI      18.1      (null)       112    112  2026-02-13  2026-06-27
+-- XAX  H3A   47929.8   104487.00         0   2619  2026-01-01  2026-06-30
+-- XBX  H3A   13320.4     6660.18         0   1177  2026-01-01  2026-06-30
+-- XKX  H3A    4165.0      (null)       364    364  2026-01-01  2026-03-06
+-- XKX  OFR    4418.6      (null)        83     83  2026-01-01  2026-06-29  <- sigue vivo, sin tarifa
+-- XXX  CMI       0.0      (null)         1      1  2026-02-09  2026-02-09
+-- XXX  H3A       6.7      (null)       116    116  2026-02-15  2026-06-30</pre></div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-q4-dimcountry">
+  <div class="modal-box">
+    <div class="modal-head"><span>QUERY — PRESENCIA EN DIM_COUNTRY (7 DE 11)</span><button class="modal-close" onclick="document.getElementById('modal-q4-dimcountry').classList.remove('open')">×</button></div>
+    <div class="modal-body"><pre>SELECT
+  country_code_iso3,
+  country_code_iso2,
+  country_name,
+  region_name,
+  ARRAY_LENGTH(SPLIT(IFNULL(ARRAY_TO_STRING(
+      ARRAY(SELECT x FROM UNNEST(list_country_code_iso3) x), ","), ""), ",")) AS n_paises_en_lista
+FROM `hly--data--pro--57.mdm_gold.dim_country`
+WHERE country_code_iso3 IN ("EUR","SCA","EEU","800","900","XAX","XBX","XXX","ANT","RKS","XKX")
+ORDER BY 1;
+
+-- Resultado (solo 7 filas -> faltan 4):
+-- 800  80  Not Specified                              (sin región)  1
+-- 900  90  Not Found                                  (sin región)  1
+-- ANT  AN  Former Netherlands Antilles                Americas      3
+-- RKS  XK  Kosovo                                     Europe        1   <- iso2 = XK !
+-- XAX  XA  French Antilles (France)                   Americas      5
+-- XBX  XB  French Indian Ocean Territories (France)   Africa        2
+-- XXX  XX  Worldwide                                  (sin región)  1
+--
+-- NO ESTÁN EN dim_country: EUR, SCA, EEU, XKX.
+-- La fila RKS lleva country_code_iso2 = 'XK'. 'XKX' no es más que ese 'XK'
+-- rellenado a 3 caracteres por otra rama del código. RKS es el canónico.</pre></div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-q4-dimcost">
+  <div class="modal-box">
+    <div class="modal-head"><span>QUERY — PRESENCIA EN DIM_COST</span><button class="modal-close" onclick="document.getElementById('modal-q4-dimcost').classList.remove('open')">×</button></div>
+    <div class="modal-body"><pre>SELECT
+  country_code_iso3,
+  esim_provider_code,
+  COUNT(*)                                                    AS n,
+  ROUND(MIN(cost),5)                                          AS min_cost,
+  ROUND(MAX(cost),5)                                          AS max_cost,
+  STRING_AGG(DISTINCT price_type ORDER BY price_type LIMIT 3) AS price_types
+FROM `hly--data--pro--57.mdm_gold.dim_cost`
+WHERE country_code_iso3 IN ("EUR","SCA","EEU","800","900","XAX","XBX","XXX","ANT","RKS","XKX")
+GROUP BY 1,2
+ORDER BY 1,2;
+
+-- ANT  H3A  2  5.10384  5.50000  Current,Old
+-- ANT  OFR  2  3.00000  5.12000  Current,Old
+-- EEU  OFR  1  2.86321  2.86321  Current
+-- EUR  CMI 12  0.71922  2.29605  Current,Old
+-- EUR  H3A  7  0.49000  1.90772  Current,Old
+-- EUR  OFR  1  0.36368  0.36368  Current
+-- RKS  H3A  8  5.50000  8.40000  Current,Old
+-- RKS  OFR  2  2.00000  3.07000  Current,Old
+-- XAX  H3A  1  2.18000  2.18000  Current
+-- XBX  H3A  1  0.50000  0.50000  Current
+--
+-- CON TARIFA: ANT, EEU, EUR, RKS, XAX, XBX
+-- SIN TARIFA: 800, 900, SCA, XKX, XXX   <- exactamente los de coste NULL
+-- Los parciales (ANT/CMI, XAX/CMI) fallan por combinación país+proveedor ausente.</pre></div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-q4-workbook">
+  <div class="modal-box">
+    <div class="modal-head"><span>EXTRACTO — DIM_PRODUCT_DICTIONARY (WORKBOOK)</span><button class="modal-close" onclick="document.getElementById('modal-q4-workbook').classList.remove('open')">×</button></div>
+    <div class="modal-body"><pre>Workbook: dim_product_dictionary (https://docs.google.com/spreadsheets/d/1fFfRB0vLRoEsSeRvfZ8Z5AIwnXLxk-8fhso5mk4Egos/edit?usp=sharing)
+Hojas: actual_sku_output, plus_carriers_output, final_table, rules
+
+--- Hoja 'final_table' — filas relevantes (type='Region' y Kosovo) ---
+sku                          name              iso_code_2  iso_code_3  type     iso_code_carrier
+esim-kosovo                  Kosovo            XK          XKX         Country  XKX
+esim-europe                  Europe            -           -           Region   EUR
+esim-scandinavia             Scandinavia       -           -           Region   SCA
+esim-eastern-europe          Eastern Europe    -           -           Region   EEU
+esim-china-hong-kong-macau   Hong Kong,        -           -           Region   CHM
+                              Macau and China
+
+Nota: 'type' distingue Country / Region / Product. EUR, SCA, EEU son Region
+(bundles regionales vendidos como producto, no países). XKX es Country, con
+iso_code_2='XK' — mismo iso2 que la fila RKS de mdm_gold.dim_country.
+
+--- Hoja 'rules' (proceso de construcción del workbook) ---
+1. activaciones-holafly.Carrier_Center.current_jsc_destinations
+2. dim_country (países) + patillada (region i.e. emergency)
+
+steps
+1. Popular iso_codes
+2. Crear tabla en bigquery + notificar
+3. Estandarizar name + iso con diccionario usado en Shopify (aka vista antigua)
+
+=> El proceso combina Carrier_Center + dim_country, y usa este workbook para
+   estandarizar nombres. La información de EUR/SCA/EEU ya existe acá; el gap
+   es que no está sincronizada de vuelta a dim_country en BigQuery.</pre></div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-q5-nullvszero">
+  <div class="modal-box">
+    <div class="modal-head"><span>QUERY — NULL VS CERO VS POSITIVO, POR CÓDIGO</span><button class="modal-close" onclick="document.getElementById('modal-q5-nullvszero').classList.remove('open')">×</button></div>
+    <div class="modal-body"><pre>SELECT
+  country_code_iso3,
+  COUNT(*)                        AS rows_n,
+  COUNTIF(total_cost_eur IS NULL) AS rows_cost_null,
+  COUNTIF(total_cost_eur = 0)     AS rows_cost_zero,
+  COUNTIF(total_cost_eur > 0)     AS rows_cost_pos,
+  ROUND(SUM(total_volume)/POW(1024,3),2) AS gb,
+  STRING_AGG(DISTINCT IFNULL(bundle_name,"<NULL>") ORDER BY IFNULL(bundle_name,"<NULL>") LIMIT 8) AS bundles,
+  STRING_AGG(DISTINCT esim_provider_code ORDER BY esim_provider_code LIMIT 5) AS providers
+FROM `hly--data--pro--57.dp_consumption.consumption_cost_per_day_provider_country_bundle`
+WHERE utc_date BETWEEN "2026-01-01" AND "2026-06-30"
+GROUP BY 1
+HAVING rows_cost_null > 0
+ORDER BY gb DESC;
+
+-- 22 filas. Nótese rows_cost_zero = 0 en TODAS: nunca hay coste 0.
+-- code  rows_n  null   zero   pos      gb        providers
+-- USA    21188     17     0  21171  6971368.10  CMI,H3A          <- parcial
+-- ESP    16941      3     0  16938  3358015.77  CMI,H3A,OFR      <- parcial
+-- TUR    10771     23     0  10748  2122311.12  CMI,H3A          <- parcial (0,21%)
+-- 800    24473  24473     0      0   260104.28  CMI,H3A,OFR      <- 100% NULL
+-- BOL     2641      4     0   2637    60900.25  CMI,H3A
+-- XAX     2731    112     0   2619    47947.91  CMI,H3A
+-- ABW     3701    424     0   3277    21178.50  CMI,H3A
+-- ANT     2256    498     0   1758    18715.13  CMI,H3A,OFR
+-- MOZ     1387    174     0   1213    16759.68  CMI,H3A,OFR
+-- SUR     1113     17     0   1096    12229.01  CMI,H3A
+-- SCA      149    149     0      0    10358.74  OFR              <- 100% NULL
+-- XKX      447    447     0      0     8583.58  H3A,OFR          <- 100% NULL
+-- FRO      654    324     0    330     4127.12  CMI,H3A          <- parcial (49,54%)
+-- SLE      378      1     0    377      717.51  CMI,H3A
+-- 900     1660   1660     0      0      250.02  CMI,H3A          <- 100% NULL
+-- MNP      179    179     0      0       20.85  H3A              <- 100% NULL
+-- XXX      117    117     0      0        6.74  CMI,H3A          <- 100% NULL
+-- LBN       19     19     0      0        5.54  H3A              <- 100% NULL
+-- BDI        4      4     0      0        0.03  H3A              <- 100% NULL
+-- SSD        3      3     0      0        0.03  H3A              <- 100% NULL
+-- VEN        2      2     0      0        0.01  CMI              <- 100% NULL
+-- KIR        1      1     0      0        0.00  H3A              <- 100% NULL
+-- GMB        1      1     0      0        0.00  H3A              <- 100% NULL
+--
+-- Los bundles de '800' son bundles REALES: consumo legítimo sin país resuelto,
+-- no basura. Los de '900' son packs globales/multi-país.</pre></div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-q5-verif">
+  <div class="modal-box">
+    <div class="modal-head"><span>QUERY — VERIFICACIÓN PUNTUAL (FRO, TUR, EUR, MNP)</span><button class="modal-close" onclick="document.getElementById('modal-q5-verif').classList.remove('open')">×</button></div>
+    <div class="modal-body"><pre>SELECT
+  country_code_iso3,
+  COUNT(*)                        AS filas_total,
+  COUNTIF(total_cost_eur IS NULL) AS filas_null,
+  ROUND(100*SAFE_DIVIDE(COUNTIF(total_cost_eur IS NULL),COUNT(*)),2) AS pct_null,
+  ROUND(SUM(total_volume)/POW(1024,3),1) AS gb,
+  ROUND(SUM(total_cost_eur),2)    AS cost_eur
+FROM `hly--data--pro--57.dp_consumption.consumption_cost_per_day_provider_country_bundle`
+WHERE utc_date BETWEEN "2026-01-01" AND "2026-06-30"
+  AND country_code_iso3 IN ("FRO","TUR","EUR","MNP","NUN")
+GROUP BY 1
+ORDER BY 1;
+
+-- EUR    181     0    0.00  2641417.7  960626.79
+-- FRO    654   324   49.54     4127.1     170.78
+-- MNP    179   179  100.00       20.9     (null)
+-- TUR  10771    23    0.21  2122311.1  643076.70
+-- ('NUN' no devuelve fila: ese código no existe en la tabla.)</pre></div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-q5-causa">
+  <div class="modal-box">
+    <div class="modal-head"><span>QUERY + INSPECCIÓN DE REPO — CAUSA RAÍZ DE 800/900</span><button class="modal-close" onclick="document.getElementById('modal-q5-causa').classList.remove('open')">×</button></div>
+    <div class="modal-body"><pre>SELECT "dim_costs" AS t, country_code_iso3, COUNT(*) n
+FROM `hly--data--pro--57.mdm_gold.dim_costs`
+WHERE country_code_iso3 IN ("800","900") GROUP BY 1,2
+UNION ALL
+SELECT "dim_cost", country_code_iso3, COUNT(*)
+FROM `hly--data--pro--57.mdm_gold.dim_cost`
+WHERE country_code_iso3 IN ("800","900") GROUP BY 1,2;
+
+-- Resultado: 0 filas en ambas tablas -> el LEFT JOIN de coste no encuentra
+-- match y devuelve NULL. Confirmado.
+
+-- Origen de los centinelas en el código (inspección de repo, no SQL):
+-- $ git grep -n "'800'" origin/dev -- "dbt_project/models"
+-- $ git grep -n "'900'" origin/dev -- "dbt_project/models"
+--
+-- OFR — gold_fct_ofr_consumption.sql:122 y :127
+--     COALESCE(co.product_country, '800') AS country_code_iso3
+--   comentario propio del modelo, línea 20:
+--     "-- don't contain the roaming country — '800' (unknown) is used when no order matches."
+--
+-- CORE — gold_fct_core_consumption.sql:67-71
+--     IF(plmn.country_code_iso3 IS NOT NULL, plmn.country_code_iso3,
+--        IF(consumption.hni IS NULL, '800', '900')) AS country_code_iso3
+--   => 800 = no hay HNI en absoluto; 900 = hay HNI pero no está en la
+--      dimensión PLMN (red sin mapear)
+--
+-- LEGACY — silver_legacy_consumption.sql:33-35
+--     -- TODO: DMM - change to value '800' associated with "Not Identified" in dim_country
+--     coalesce(country_iso, '800') AS country_code_iso3
+--
+-- En dim_country: 800 = "Not Specified", 900 = "Not Found".</pre></div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-q5-impacto">
+  <div class="modal-box">
+    <div class="modal-head"><span>QUERY — IMPACTO TOTAL DEL HUECO DE TARIFICACIÓN</span><button class="modal-close" onclick="document.getElementById('modal-q5-impacto').classList.remove('open')">×</button></div>
+    <div class="modal-body"><pre>SELECT
+  ROUND(SUM(total_volume)/POW(1024,3),1) AS gb_total,
+  ROUND(SUM(IF(total_cost_eur IS NULL, total_volume, 0))/POW(1024,3),1) AS gb_sin_costo,
+  ROUND(100*SAFE_DIVIDE(SUM(IF(total_cost_eur IS NULL, total_volume, 0)),
+                        SUM(total_volume)),3) AS pct_gb_sin_costo,
+  COUNTIF(total_cost_eur IS NULL) AS filas_sin_costo,
+  COUNT(*)                        AS filas_total,
+  ROUND(100*SAFE_DIVIDE(COUNTIF(total_cost_eur IS NULL), COUNT(*)),3) AS pct_filas_sin_costo
+FROM `hly--data--pro--57.dp_consumption.consumption_cost_per_day_provider_country_bundle`
+WHERE utc_date BETWEEN "2026-01-01" AND "2026-06-30";
+
+-- gb_total      69.872.112,9   (coincide con el total ya validado en la pregunta 1)
+-- gb_sin_costo     297.380,0
+-- pct_gb           0,426 %
+-- filas_sin_costo   28.652 de 978.846
+-- pct_filas         2,927 %</pre></div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-q7-tablas">
+  <div class="modal-box">
+    <div class="modal-head"><span>QUERY — TABLAS REALES EXISTENTES</span><button class="modal-close" onclick="document.getElementById('modal-q7-tablas').classList.remove('open')">×</button></div>
+    <div class="modal-body"><pre>SELECT table_schema, table_name, table_type
+FROM `hly--data--pro--57.region-eu.INFORMATION_SCHEMA.TABLES`
+WHERE LOWER(table_name) LIKE "%consumption_cost_per_day%"
+ORDER BY table_schema, table_name;
+
+-- dp_consumption  consumption_cost_per_day                          BASE TABLE
+-- dp_consumption  consumption_cost_per_day_provider_country_bundle  BASE TABLE
+-- dp_consumption  consumption_cost_per_day_subscription_product_id  BASE TABLE
+-- dp_consumption  core_consumption_cost_per_day                     VIEW
+-- dp_consumption  legacy_consumption_cost_per_day                   VIEW
+-- dp_consumption  ofr_consumption_cost_per_day                      VIEW
+-- mdm_monitor     dq_dp_consumption_cost_per_day                    BASE TABLE
+--
+-- NO existe ninguna '..._agg_country_provider'. Confirmado el error.
+-- (La misma búsqueda en hly--data--looker--79.region-eu devuelve 0 filas.)</pre></div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-q7-desc">
+  <div class="modal-box">
+    <div class="modal-head"><span>INSPECCIÓN — DESCRIPCIÓN EN BIGQUERY + LOCALIZACIÓN EN REPO</span><button class="modal-close" onclick="document.getElementById('modal-q7-desc').classList.remove('open')">×</button></div>
+    <div class="modal-body"><pre>$ bq show --format=prettyjson hly--data--pro--57:dp_consumption.consumption_cost_per_day \
+    | python3 -c "import json,sys; print(json.load(sys.stdin)['description'])"
+
+  Daily mobile data consumption and cost at iccid/order level.
+  Unions core (JSC), legacy, and OFR consumption sources into a single table.
+  LARGE TABLE — BigQuery is columnar, so every column selected is scanned across all matching rows.
+  Select only the columns you need and filter by utc_date partition to minimize bytes processed and cost.
+  Best used with a specific iccid, order_id, or order_number in the WHERE clause.
+  For country-level or provider-level aggregations, use consumption_cost_per_day_agg_country_provider
+  instead — it is much smaller and cheaper to scan.        <-- TABLA INEXISTENTE
+
+$ git grep -n "agg_country_provider" origin/dev
+  origin/dev:dbt_project/models/dp_consumption/schema.yml:11
+
+OJO: el fichero existe SOLO en origin/dev. En main no está (main va 803
+commits por detrás y tiene otro conjunto de modelos en dp_consumption/).
+El PR tiene que salir de dev, no de main.</pre></div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-q7-parche">
+  <div class="modal-box">
+    <div class="modal-head"><span>PARCHE PROPUESTO (NO APLICADO)</span><button class="modal-close" onclick="document.getElementById('modal-q7-parche').classList.remove('open')">×</button></div>
+    <div class="modal-body"><pre>Fichero: dbt_project/models/dp_consumption/schema.yml
+
+Línea 11:
+-   For country-level or provider-level aggregations, use consumption_cost_per_day_agg_country_provider instead — it is much smaller and cheaper to scan.
++   For country-level or provider-level aggregations, use consumption_cost_per_day_provider_country_bundle instead — it is much smaller and cheaper to scan.
+
+
+SEGUNDO ERROR EN EL MISMO FICHERO (lo destapó la pregunta 4).
+Líneas 20 y 58 describen country_code_iso3 como ISO puro:
+
+  línea 20: description: "ISO 3166-1 alpha-3 country code where the data was consumed (e.g. USA, JPN)."
+  línea 58: description: "ISO 3166-1 alpha-3 country code (e.g. ESP). Use for country-level statistics."
+
+Es falso para 11 de los 202 valores, incluidos los centinelas 800/900 que
+además arrastran total_cost_eur NULL. Quien lea esa descripción y filtre
+asumiendo ISO puro pierde 297.380 GB en silencio (0,426% del volumen).
+Debería ir en el mismo PR.</pre></div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-q8-inventario">
+  <div class="modal-box">
+    <div class="modal-head"><span>QUERY — INVENTARIO DE VARIANTES</span><button class="modal-close" onclick="document.getElementById('modal-q8-inventario').classList.remove('open')">×</button></div>
+    <div class="modal-body"><pre>SELECT table_schema, table_name, table_type
+FROM `hly--data--pro--57.region-eu.INFORMATION_SCHEMA.TABLES`
+WHERE LOWER(table_name) LIKE "%dim_cost%"
+ORDER BY table_schema, table_name;
+
+-- mdm_gold    dim_cost                            BASE TABLE
+-- mdm_gold    dim_cost_hni                        BASE TABLE
+-- mdm_gold    dim_cost_plmn                       BASE TABLE
+-- mdm_gold    dim_costs                           BASE TABLE
+-- mdm_gold    dim_costs_hni                       BASE TABLE
+-- playground  dim_cost_plmn_missing               BASE TABLE
+-- playground  dim_cost_plmn_missing_combinations  BASE TABLE
+--
+-- (La misma búsqueda en hly--data--looker--79 devuelve 0 filas.)</pre></div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-q8-frescura">
+  <div class="modal-box">
+    <div class="modal-head"><span>QUERY — FRESCURA Y TAMAÑO</span><button class="modal-close" onclick="document.getElementById('modal-q8-frescura').classList.remove('open')">×</button></div>
+    <div class="modal-body"><pre>SELECT
+  t.table_name,
+  t.creation_time,
+  TIMESTAMP_MILLIS(o.last_modified_time) AS last_modified,
+  o.row_count,
+  ROUND(o.size_bytes/1e6,1) AS size_mb
+FROM `hly--data--pro--57.mdm_gold.INFORMATION_SCHEMA.TABLES` t
+JOIN `hly--data--pro--57.mdm_gold.__TABLES__` o
+  ON o.table_id = t.table_name
+WHERE LOWER(t.table_name) LIKE "%dim_cost%"
+ORDER BY t.table_name;
+
+-- Resultado (corrido el 2026-08-19):
+-- table_name      creation_time        last_modified        row_count  size_mb
+-- dim_cost        2026-08-19 16:17:13  2026-08-19 16:17:14       3177      0.4
+-- dim_cost_hni    2026-08-19 16:18:10  2026-08-19 16:18:10        111      0.0
+-- dim_cost_plmn   2026-08-19 16:18:14  2026-08-19 16:18:15     138882     10.6
+-- dim_costs       2026-08-19 16:16:37  2026-08-19 16:16:38       3177      0.4
+-- dim_costs_hni   2026-08-19 16:18:10  2026-08-19 16:18:11        107      0.0
+--
+-- Las 5 recreadas HOY en una ventana de 2 minutos => todas vivas, ninguna
+-- huérfana. Materialización 'table' (create or replace) en cada corrida.</pre></div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-q8-jobs">
+  <div class="modal-box">
+    <div class="modal-head"><span>QUERY — QUIÉN LAS ESCRIBE (JOBS_BY_PROJECT)</span><button class="modal-close" onclick="document.getElementById('modal-q8-jobs').classList.remove('open')">×</button></div>
+    <div class="modal-body"><pre>SELECT
+  destination_table.table_id      AS tbl,
+  MAX(creation_time)              AS last_job,
+  ANY_VALUE(user_email)           AS who,
+  ANY_VALUE(SUBSTR(query,1,300))  AS query_head
+FROM `hly--data--pro--57.region-eu.INFORMATION_SCHEMA.JOBS_BY_PROJECT`
+WHERE creation_time > TIMESTAMP_SUB(CURRENT_TIMESTAMP(), INTERVAL 3 DAY)
+  AND destination_table.dataset_id = "mdm_gold"
+  AND LOWER(destination_table.table_id) LIKE "%dim_cost%"
+GROUP BY tbl
+ORDER BY tbl;
+
+-- Resultado: las 5 escritas por cloud-composer@hly--data--pro--57.iam.gserviceaccount.com
+-- con SQL generado por dbt ("create or replace table ... OPTIONS(description=...)").
+-- No hay scheduled queries sueltas: todo viene del DAG de dbt.</pre></div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-q8-desc">
+  <div class="modal-box">
+    <div class="modal-head"><span>INSPECCIÓN — DESCRIPTIONS COMPLETAS (BQ SHOW)</span><button class="modal-close" onclick="document.getElementById('modal-q8-desc').classList.remove('open')">×</button></div>
+    <div class="modal-body"><pre>$ for t in dim_cost dim_costs dim_cost_hni dim_costs_hni dim_cost_plmn; do
+    bq show --format=prettyjson hly--data--pro--57:mdm_gold.$t \
+      | python3 -c "import json,sys; print(json.load(sys.stdin)['description'])"
+  done
+
+dim_cost        -> "Provider cost rates per country, eSIM provider, and destination type.
+                    ... Use to look up the wholesale cost per GB for a given provider and
+                    country. For current rates, filter by price_type = 'Current'.
+                    For main operator only (recommended), filter by flag_main_operator = true.
+                    The seeds source is 'master_cost.csv'."
+
+dim_costs       -> "THIS MODEL WILL BE DEPRECATED AND SUBSTITUTED BY gold_dim_cost.
+                    Provider cost rates per country, eSIM provider, and destination type. ..."
+
+dim_cost_hni    -> "Provider cost rates per HNI (instead of only by country) and esim_provider.
+                    It is used until 2025 for Core Consumption for specific cases:
+                    - USA, JPN, KOR countries
+                    - CMI macro provider
+                    The seeds source is 'master_cost.csv'."
+
+dim_costs_hni   -> "THIS MODEL WILL BE DEPRECATED AND SUBSTITUTED BY gold_dim_cost_hni.
+                    ... The seeds source is 'master_costs.csv' which will be deprecated too."
+
+dim_cost_plmn   -> "Provider cost rates attending the PLMN logic from 2026 for Core Consumption.
+                    Each row represents a cost entry for a specific network provider/HNI
+                    combination for each day. ... The exchange rates are set monthly using
+                    the last day of the previous month."
+
+VIGENTES:   dim_cost, dim_cost_hni, dim_cost_plmn
+DEPRECADAS: dim_costs, dim_costs_hni  (se autodeclaran)</pre></div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-q8-salvedad">
+  <div class="modal-box">
+    <div class="modal-head"><span>INSPECCIÓN — CONSUMIDOR VIVO DE DIM_COSTS</span><button class="modal-close" onclick="document.getElementById('modal-q8-salvedad').classList.remove('open')">×</button></div>
+    <div class="modal-body"><pre>$ git show "origin/dev:dbt_project/models/mdm_gold/ofr_consumption/gold_fct_ofr_consumption.sql"
+
+  línea 126:  LEFT JOIN {{ ref('gold_dim_costs') }} AS costs
+
+=> TODO el coste de OFR se calcula hoy contra la dimensión marcada como
+   deprecada. Hay que repuntar ese modelo a gold_dim_cost ANTES de retirarla.
+
+Nota de ramas: main solo tiene models/mdm_gold/costs/gold_dim_costs.sql.
+Los modelos nuevos (mdm_gold/cost/gold_dim_cost.sql, _hni, _plmn) y la
+carpeta renombrada "costs (DEPRECATE)/" están en origin/dev y en ~15 ramas
+feature, no en main.</pre></div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-q8-carriers">
+  <div class="modal-box">
+    <div class="modal-head"><span>QUERY — TARIFA MAYORISTA VIGENTE PARA CARRIERS</span><button class="modal-close" onclick="document.getElementById('modal-q8-carriers').classList.remove('open')">×</button></div>
+    <div class="modal-body"><pre>SELECT
+  country_code_iso3,
+  esim_provider_code,
+  operator,
+  operator_name,
+  cost        AS cost_eur_per_gb,
+  start_at,
+  end_at
+FROM `hly--data--pro--57.mdm_gold.dim_cost`
+WHERE price_type         = 'Current'
+  AND flag_main_operator = TRUE
+ORDER BY country_code_iso3, esim_provider_code;
+
+-- Este es el filtro que indica la propia description de dim_cost.</pre></div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-q9-mensual">
+  <div class="modal-box">
+    <div class="modal-head"><span>QUERY — EVOLUCIÓN MENSUAL LOCAL VS ROAMING</span><button class="modal-close" onclick="document.getElementById('modal-q9-mensual').classList.remove('open')">×</button></div>
+    <div class="modal-body"><pre>SELECT
+  FORMAT_DATE("%Y-%m", utc_date) AS mes,
+  consumption_type,
+  COUNT(*)                               AS filas,
+  ROUND(SUM(total_volume)/POW(1024,3),1) AS gb,
+  ROUND(SUM(total_cost_eur),2)           AS cost_eur,
+  ROUND(SAFE_DIVIDE(SUM(total_cost_eur), SUM(total_volume)/POW(1024,3)),5) AS eur_per_gb,
+  COUNT(DISTINCT country_code_iso3)      AS paises
+FROM `hly--data--pro--57.mdm_gold.fct_ofr_consumption_daily`
+WHERE utc_date BETWEEN "2026-01-01" AND "2026-06-30"
+GROUP BY 1,2
+ORDER BY 1,2;
+
+-- mes      tipo     filas       gb        cost_eur    eur_per_gb  paises
+-- 2026-01  local    541410   460862.2    173494.03     0.37646      46
+-- 2026-01  roaming 3450520  2921834.8   1721612.92     0.58922      87
+-- 2026-02  local     93259    93848.4     38400.18     0.40917      47
+-- 2026-02  roaming  785264   722799.5    465584.04     0.64414      87
+-- 2026-03  local     52199    55647.2     25492.63     0.45811      40
+-- 2026-03  roaming  331316   342124.7    177785.66     0.51965      83
+-- 2026-04  local     28739    23707.1     16049.74     0.67700      41
+-- 2026-04  roaming  124995   117114.8     69968.68     0.59744      78
+-- 2026-05  local     18152    13788.5     11776.93     0.85412      43
+-- 2026-05  roaming   62780    58456.3     45152.58     0.77242      70
+-- 2026-06  local     26374    18110.9     16894.04     0.93281      36
+-- 2026-06  roaming   55898    53819.3     45727.72     0.84965      68
+--
+-- % local sobre el total de GB: ene 13,6% · feb 11,5% · mar 14,0% · abr 16,8%
+-- · may 19,1% · jun 25,2%  -> persistente y CRECIENTE.</pre></div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-q9-porpais">
+  <div class="modal-box">
+    <div class="modal-head"><span>QUERY — RATIO POR PAÍS (DESCARTA TARIFA DISTINTA)</span><button class="modal-close" onclick="document.getElementById('modal-q9-porpais').classList.remove('open')">×</button></div>
+    <div class="modal-body"><pre>WITH x AS (
+  SELECT
+    country_code_iso3,
+    consumption_type,
+    SUM(total_volume)/POW(1024,3) AS gb,
+    SUM(total_cost_eur)           AS cost
+  FROM `hly--data--pro--57.mdm_gold.fct_ofr_consumption_daily`
+  WHERE utc_date BETWEEN "2026-01-01" AND "2026-06-30"
+  GROUP BY 1,2
+)
+SELECT
+  country_code_iso3,
+  ROUND(MAX(IF(consumption_type="local",   gb,0)),1) AS gb_local,
+  ROUND(MAX(IF(consumption_type="roaming", gb,0)),1) AS gb_roaming,
+  ROUND(MAX(IF(consumption_type="local",   SAFE_DIVIDE(cost,gb),NULL)),5) AS eurgb_local,
+  ROUND(MAX(IF(consumption_type="roaming", SAFE_DIVIDE(cost,gb),NULL)),5) AS eurgb_roaming,
+  ROUND(SAFE_DIVIDE(
+      MAX(IF(consumption_type="local",   SAFE_DIVIDE(cost,gb),NULL)),
+      MAX(IF(consumption_type="roaming", SAFE_DIVIDE(cost,gb),NULL))),4) AS ratio_loc_roam
+FROM x
+GROUP BY 1
+HAVING gb_local > 1000 AND gb_roaming > 1000
+ORDER BY gb_local DESC
+LIMIT 25;
+
+-- country  gb_local   gb_roaming   eurgb_local  eurgb_roaming  ratio
+-- EUR      443543.8   2197873.9      0.36368       0.36368     1.0000
+-- MCO       49714.8    150090.6      1.01000       1.01000     1.0000
+-- AND        5362.1    176380.1      1.50000       1.50000     1.0000
+-- CHE        4161.2     95514.4      0.40000       0.40000     1.0000
+-- ESP        2961.0    234191.2      0.36000       0.36000     1.0000
+-- GBR        1761.6    302624.3      0.36000       0.36000     1.0000
+-- DEU        1227.9    119959.6      0.36000       0.36000     1.0000
+--
+-- Ratio exactamente 1,0000 en todos. El gap blended de la query anterior es
+-- 100% mix: 'local' se concentra en el bucket EUR barato.
+-- Cross-check: EUR local 443.543,8 + roaming 2.197.873,9 = 2.641.417,7 GB,
+-- que es exactamente el total de EUR en la pregunta 4.</pre></div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-q9-construccion">
+  <div class="modal-box">
+    <div class="modal-head"><span>INSPECCIÓN — EL JOIN DE COSTE OFR</span><button class="modal-close" onclick="document.getElementById('modal-q9-construccion').classList.remove('open')">×</button></div>
+    <div class="modal-body"><pre>$ git show "origin/dev:dbt_project/models/mdm_gold/ofr_consumption/gold_fct_ofr_consumption.sql"
+
+  líneas 123-130:
+      costs.cost AS cost_gb,
+      costs.cost * co.total_volume_bytes / 1024 / 1024 / 1024 AS cost_eur
+  FROM consumption_order AS co
+  LEFT JOIN {{ ref('gold_dim_costs') }} AS costs
+      ON COALESCE(co.product_country, '800') = costs.country_code_iso3
+      AND DATE(co.first_cdr_datetime_utc) BETWEEN CAST(costs.start_at AS DATE)
+                                              AND CAST(costs.end_at AS DATE)
+      AND co.esim_provider_code = costs.esim_provider_code
+      AND costs.flag_main_operator = TRUE
+
+La llave del join es: país + fecha + proveedor + flag_main_operator.
+consumption_type NO PARTICIPA. El modelo de coste de OFR es incapaz de
+diferenciar local de roaming aunque el contrato lo exigiera.
+
+(De paso: este join usa gold_dim_costs, la dimensión deprecada — ver
+ pregunta 8. Y el COALESCE(..., '800') es el origen del centinela 800 —
+ ver pregunta 5.)</pre></div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-q9-passthrough">
+  <div class="modal-box">
+    <div class="modal-head"><span>INSPECCIÓN — ORIGEN DEL CAMPO EN EL CDR</span><button class="modal-close" onclick="document.getElementById('modal-q9-passthrough').classList.remove('open')">×</button></div>
+    <div class="modal-body"><pre>$ git show "origin/dev:dbt_project/models/mdm_silver/ofr/silver_ofr_cdr.sql"
+
+  línea 55:      type AS consumption_type,
+  líneas 17-19:  -- Renames camelCase source columns to MDM snake_case convention,
+                 -- filters to data bearer only (voice/SMS/MMS excluded),
+                 -- filters out type='all' (duplicates roaming+local),
+
+=> 'local'/'roaming' es la clasificación PROPIA DE ORANGE en su CDR, no algo
+   que derive Holafly. El feed trae además un tercer valor 'all' que es la
+   suma de ambos y se descarta para no duplicar.
+
+Contexto: OFR = Orange. bronze_ofr_cdr.sql:18 ->
+  "Orange CDR files land as daily CSVs in gs://hly-ofr-m2m-reports/uncompressed/"</pre></div>
+  </div>
+</div>
+
+<script>
+document.querySelectorAll('.modal-overlay').forEach(function(overlay){
+  overlay.addEventListener('click', function(e){ if(e.target === overlay) overlay.classList.remove('open'); });
+});
+document.addEventListener('keydown', function(e){
+  if(e.key === 'Escape') document.querySelectorAll('.modal-overlay.open').forEach(function(o){ o.classList.remove('open'); });
+});
+</script>
+</body>
+</html>
