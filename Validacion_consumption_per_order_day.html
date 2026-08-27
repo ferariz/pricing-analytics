@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Validación consumption_per_order_day</title>
+<style>
+:root{--pink:#E6485C;--charcoal:#292B2E;--cs:#4A4D52;--gm:#64748B;--paper:#FAFAFB;--card:#F8FAFC;--w:#FFFFFF;--rule:rgba(41,43,46,0.10);--rs:rgba(41,43,46,0.06);--green:#15803D;--gw:#E8F5EE;--warn:#B45309;--ww:#FDF3E7;--blue:#1D4ED8;--bw:#E8EFFD}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Mulish',-apple-system,sans-serif;background:var(--paper);color:var(--charcoal);line-height:1.55;-webkit-font-smoothing:antialiased}
+.page{max-width:920px;margin:0 auto;padding:40px 28px 72px}
+.top-bar{display:flex;align-items:center;gap:12px;margin-bottom:28px;padding-bottom:14px;border-bottom:1px solid var(--rule)}
+.top-bar .logo svg{height:20px;width:auto}
+.top-bar-txt{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;color:var(--gm)}
+.top-bar .ver{font-size:9px;background:var(--pink);color:var(--w);padding:2px 6px;border-radius:3px;font-weight:700;letter-spacing:0.1em;margin-left:6px}
+.head{margin-bottom:24px}
+.head-title{font-size:clamp(22px,3.6vw,32px);font-weight:800;letter-spacing:-0.02em;line-height:1.2;margin-bottom:10px}
+.head-title .accent{color:var(--pink)}
+.head-deck{font-size:13.5px;color:var(--cs);max-width:700px}
+.callout{background:var(--card);border:1px solid var(--rule);border-left:4px solid var(--pink);border-radius:0 12px 12px 0;padding:14px 18px;margin:14px 0;font-size:13px;line-height:1.6;color:var(--cs)}
+.callout strong{color:var(--charcoal)}
+.callout.blue{border-left-color:var(--blue);background:var(--bw)}
+.callout.warn{border-left-color:var(--warn);background:var(--ww)}
+.callout.green{border-left-color:var(--green);background:var(--gw)}
+.section{margin-bottom:32px}
+.section-num{font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;color:var(--pink);margin-bottom:6px;display:block}
+.section-title{font-size:18px;font-weight:800;letter-spacing:-0.015em;margin-bottom:12px}
+p.txt{font-size:13.5px;line-height:1.65;color:var(--cs);margin-bottom:10px}
+p.txt strong{color:var(--charcoal)}
+p.txt code{font-family:'JetBrains Mono',monospace;font-size:12px;background:var(--card);padding:1px 6px;border-radius:4px;border:1px solid var(--rule)}
+table.m{width:100%;border-collapse:collapse;background:var(--w);border-radius:10px;overflow:hidden;border:1px solid var(--rule);font-size:12.5px;margin-bottom:14px}
+table.m th{font-family:'JetBrains Mono',monospace;font-size:9px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--gm);padding:9px 12px;text-align:left;background:var(--card);border-bottom:1px solid var(--rule)}
+table.m td{padding:8px 12px;border-bottom:1px solid var(--rs);color:var(--cs)}
+table.m tr:last-child td{border-bottom:none}
+table.m .mn{font-weight:700;color:var(--charcoal)}
+table.m .num{font-family:'JetBrains Mono',monospace}
+.next-list{list-style:none}
+.next-list li{font-size:13px;color:var(--cs);padding:6px 0 6px 22px;position:relative;border-bottom:1px solid var(--rs)}
+.next-list li:last-child{border-bottom:none}
+.next-list li::before{content:'☐';position:absolute;left:0;color:var(--pink)}
+.next-list .who{font-family:'JetBrains Mono',monospace;font-size:9px;font-weight:700;color:var(--gm);text-transform:uppercase;margin-right:6px}
+.bottom{border-top:1px solid var(--rule);padding-top:16px;margin-top:24px}
+.bottom-sig{font-family:'JetBrains Mono',monospace;font-size:11.5px;font-weight:600;color:var(--gm)}
+.bottom-sig .pink{color:var(--pink)}
+details.q{background:#1E2023;border-radius:10px;margin:6px 0 14px;overflow:hidden}
+details.q summary{list-style:none;cursor:pointer;padding:10px 16px;font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;color:#E8E9EB;letter-spacing:0.04em;display:flex;align-items:center;gap:8px}
+details.q summary::-webkit-details-marker{display:none}
+details.q summary::before{content:'▶';font-size:9px;color:var(--pink);transition:transform 0.2s}
+details.q[open] summary::before{transform:rotate(90deg)}
+details.q pre{margin:6px 16px 14px;font-family:'JetBrains Mono',monospace;font-size:11.5px;line-height:1.6;color:#E8E9EB;white-space:pre-wrap;overflow-x:auto}
+details.q .qresult{font-size:11.5px;color:#94A3B8;margin:0 16px 14px;line-height:1.6}
+@media(max-width:700px){.page{padding:24px 16px 56px}}
+</style>
+</head>
+<body>
+<div class="page">
+
+<div class="top-bar">
+  <span class="logo"><svg viewBox="0 0 104 32" fill="none" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M13.1151 13.519C17.302 14.3547 20.3139 13.9602 22.2514 12.3347V4.20114H25.8592V25.535H22.2514V16.1184C20.7622 16.8201 19.0142 17.1731 16.9913 17.1731C15.7959 17.1731 14.5039 17.0492 13.1151 16.8046V25.535H9.50866V15.9599C9.03462 15.8241 8.55231 15.6785 8.0594 15.5198C5.47279 14.6879 2.15403 15.0945 0.723524 15.7075L0 12.5309C2.07157 11.8148 5.76141 11.3847 8.9963 12.4255C9.16891 12.481 9.33908 12.534 9.50866 12.5865V4.20114H13.1151V13.519Z" fill="#E6485C"/></svg></span>
+  <span class="top-bar-txt">Pricing &amp; Data · Validación de tabla<span class="ver">26/08</span></span>
+</div>
+
+<div class="head">
+  <h1 class="head-title">Validación <span class="accent">consumption_per_order_day</span></h1>
+  <p class="head-deck">Esta tabla va a reemplazar a <code>fct_cons_and_order</code> como origen de <code>product_end_date_gm_v4</code> y los marts de Pricing. Esta ronda de validación identifica qué hay que resolver o mitigar antes de que ese reemplazo sea seguro.</p>
+</div>
+
+<div class="callout green">
+  <strong>Veredicto</strong> — <strong>Apta para reemplazar a <code>fct_cons_and_order</code> como origen</strong>, con una condición bloqueante: aplicar el rename de provider en <code>product_end_date_gm_v4</code> (Finding 4) antes de migrar, o el costo fijo se zeroea en silencio. Los agregados reconcilian con la fuente de verdad (Finding 2). El 42,6% de destino sin resolver (Finding 1) es real pero <strong>no es una regresión</strong>: el dashboard actual ya corre sobre <code>fct_cons_and_order</code> con la misma limitación — migrar no la empeora. El drill-down por destino seguirá tan incompleto como hoy hasta que se resuelva aguas arriba.
+</div>
+
+<div class="callout blue">
+  <strong>TL;DR</strong>
+  <ul style="margin:8px 0 0 18px;padding:0">
+    <li style="margin-bottom:6px"><strong>42,6% de las filas sin código ISO-3 de destino</strong> — crónico desde 2024, no causado por esta migración. ~76% (bucket <code>900</code>) conserva el nombre de plan/región en otro campo; el ~24% (<code>800</code>) es vacío total (Finding 1).</li>
+    <li style="margin-bottom:6px">Volumen, costo e iccids agregados <strong>reconcilian sin desvíos reales</strong> contra la fuente de verdad (Finding 2).</li>
+    <li style="margin-bottom:6px">Entre el <strong>31/07 y el 01/08</strong>, salto de volumen abrupto (hasta 93x en un día) y cambio brusco en la tasa de destino roto en los dos providers principales — varias señales coinciden en esa ventana, la causa no está confirmada (Finding 3).</li>
+    <li style="margin-bottom:6px">El rename <code>3AU→H3A</code> / <code>CHM→CMI</code> rompe el costo fijo hardcodeado si no se actualiza — condición bloqueante para migrar (Finding 4).</li>
+    <li>El mismo tipo de producto multi-destino falla de forma correlacionada en el mart de <strong>Revenue</strong> (mismas órdenes, códigos distintos), y en su mayoría sigue activo hoy (Finding 5).</li>
+  </ul>
+</div>
+
+<div class="section">
+  <span class="section-num">Finding 1</span>
+  <h2 class="section-title">Destino no resuelto (800/900): crónico, no lo causó la migración</h2>
+  <p class="txt"><strong>42,6% de las filas / 48,9% del GB</strong> de la tabla cae en estos dos placeholders. La serie mensual por provider muestra el problema presente desde 2024, con su propia dinámica de mejoras y regresiones — no un salto que coincida con el momento de la migración al MDM.</p>
+
+  <details class="q">
+    <summary>Ver query — evolución mensual por provider, con desglose 800 vs 900</summary>
+    <pre>SELECT
+  DATE_TRUNC(utc_date, MONTH) AS month,
+  esim_provider_code,
+  COUNT(*) AS filas,
+  COUNTIF(destination_country_code_iso3 = '800') AS filas_rotas_800,
+  COUNTIF(destination_country_code_iso3 = '900') AS filas_rotas_900,
+  ROUND(100 * SAFE_DIVIDE(
+    COUNTIF(destination_country_code_iso3 IN ('800','900')), COUNT(*)), 2) AS pct_bad
+FROM `hly--data--pro--57`.`dp_consumption`.`consumption_per_order_day`
+GROUP BY 1, 2
+ORDER BY 2, 1;</pre>
+    <div class="qresult">Resultado confirmado: CMI 100% roto todo 2024, cae a 33% en dic-2024, oscila 8-40% durante 2025-2026 sin correlación con ninguna fecha de migración. H3A oscila crónicamente 37-96% en los tres años. Ningún salto coincide con el momento de la migración al MDM.</div>
+  </details>
+
+  <p class="txt">El desglose 800 vs 900 muestra algo adicional: <strong>CMI cambió de tipo de fallo con el tiempo.</strong> En 2024 casi todo su fallo caía en el vacío total (<code>800</code>, sin ninguna señal). Desde 2025 casi todo su fallo pasó a ser el colapso regional (<code>900</code>, que sí tiene señal recuperable vía nombre de plan). H3A no muestra ese patrón tan limpio — mezcla ambos tipos sin una transición clara.</p>
+
+  <div class="callout warn"><strong>Sobre el origen de la falla — pendiente de verificación independiente:</strong> Data indica que el país se lee directamente del CDR crudo del proveedor, no de un lookup interno — es decir, el dato falta desde el origen, no por un join roto del lado de Pricing. Este documento no verificó esto de forma independiente. Antes de descartar un componente interno, valdría la pena confirmar si algún otro sistema interno logra resolver país para el mismo proveedor en el mismo período — si lo logra, apuntaría a un problema de mapeo interno además del problema de origen.</div>
+
+  <p class="txt">En bundles históricos ya discontinuados (ver nota sobre <code>EUR_3AUS_...</code>/<code>USA_CHM_...</code> más abajo), <code>fct_cons_and_order</code> sí resolvía destino para las mismas filas que hoy caen en el placeholder. No se confirmó que este mecanismo de recuperación exista o haya existido para el tráfico que se genera actualmente.</p>
+
+  <div class="callout blue"><strong>Dos campos con nombre parecido, no confundir:</strong> esta tabla tiene <code>destination</code> (nombre de plan/variante, ej. <code>Africa-10_Dias_Y_Datos_Ilimitados</code> — casi siempre poblado, 2,36% nulo) y <code>destination_country_code_iso3</code> (código de país — el que audita este documento, 42,6% roto). Son campos distintos con propósitos distintos; un NULL% bajo en uno no dice nada sobre el estado del otro.</p></div>
+
+  <p class="txt">Usando ese campo <code>destination</code> — no para resolver país, sino para medir qué tan mezclada está la bolsa dentro de cada placeholder — aparece una diferencia marcada:</p>
+  <details class="q">
+    <summary>Ver query — cuántos nombres de plan distintos hay escondidos en cada placeholder</summary>
+    <pre>SELECT
+  destination_country_code_iso3,
+  COUNT(DISTINCT destination) AS n_valores_distintos_escondidos,
+  APPROX_TOP_COUNT(destination, 15) AS top_variantes
+FROM `hly--data--pro--57.dp_consumption.consumption_per_order_day`
+WHERE destination_country_code_iso3 IN ('800','900')
+GROUP BY 1;</pre>
+  </details>
+  <table class="m">
+    <thead><tr><th>Placeholder</th><th style="text-align:right">Nombres de plan distintos</th><th>Qué significa</th></tr></thead>
+    <tbody>
+      <tr><td class="mn">800</td><td class="num" style="text-align:right">1</td><td>Siempre el mismo texto genérico (<code>"Not Specified"</code>) en las 42,6M de filas — no hay ningún dato de plan ni de país, es un vacío total.</td></tr>
+      <tr><td class="mn">900</td><td class="num" style="text-align:right">1.379</td><td>1.379 nombres de plan distintos mezclados ahí adentro, la mayoría del tipo <code>Europa-90_Dias...</code> (planes regionales). No es un solo país fallando — es una gran variedad de productos distintos cayendo en el mismo balde.</td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout warn"><strong>Impacto en el caso de uso de Pricing:</strong> con 42,6% de filas sin país resuelto, cualquier drill-down por destino en el dashboard nuevo pierde a priori casi la mitad del volumen agregado.</div>
+</div>
+
+<div class="section">
+  <span class="section-num">Finding 2</span>
+  <h2 class="section-title">Reconciliación de grano: los agregados de la tabla nueva coinciden con la fuente de verdad</h2>
+  <p class="txt">Se comparó <code>consumption_per_order_day</code> contra <code>consumption_cost_per_day</code> (la fuente de verdad usada para KPIs de consumo/costo) a nivel día × provider, sobre 2.358 combinaciones entre 2024-01-01 y 2026-08-27, usando la query de validación que compartió Data.</p>
+
+  <details class="q">
+    <summary>Ver query — reconciliación día × provider</summary>
+    <pre>WITH q1 AS (
+    SELECT
+        utc_date,
+        esim_provider_code,
+        COUNT(DISTINCT iccid)            AS total_iccid,
+        COUNT(DISTINCT subscriber_id)    AS total_subscriber,
+        SUM(total_volume) / POW(1024, 3) AS total_volume_gb,
+        SUM(total_cost_eur)              AS total_volume_cost_eur
+    FROM `hly--data--pro--57`.`dp_consumption`.`consumption_cost_per_day`
+    GROUP BY utc_date, esim_provider_code
+),
+q2 AS (
+    SELECT
+        utc_date,
+        esim_provider_code,
+        COUNT(DISTINCT iccid)            AS total_iccid,
+        COUNT(DISTINCT subscriber_id)    AS total_subscriber,
+        SUM(total_volume_gb)             AS total_volume_gb,
+        SUM(total_cost_eur)              AS total_volume_cost_eur
+    FROM `hly--data--pro--57`.`dp_consumption`.`consumption_per_order_day`
+    GROUP BY utc_date, esim_provider_code
+)
+SELECT
+    COALESCE(q1.utc_date, q2.utc_date)                     AS utc_date,
+    COALESCE(q1.esim_provider_code, q2.esim_provider_code) AS esim_provider_code,
+    q2.total_iccid - q1.total_iccid                        AS diff_abs_iccid,
+    SAFE_DIVIDE(q2.total_iccid - q1.total_iccid, q1.total_iccid) * 100 AS diff_pct_iccid,
+    q2.total_volume_gb - q1.total_volume_gb                AS diff_abs_volume_gb,
+    SAFE_DIVIDE(q2.total_volume_gb - q1.total_volume_gb, q1.total_volume_gb) * 100 AS diff_pct_volume_gb,
+    q2.total_volume_cost_eur - q1.total_volume_cost_eur     AS diff_abs_volume_cost_eur,
+    SAFE_DIVIDE(q2.total_volume_cost_eur - q1.total_volume_cost_eur, q1.total_volume_cost_eur) * 100 AS diff_pct_volume_cost_eur
+FROM q1
+FULL OUTER JOIN q2
+    ON q1.utc_date = q2.utc_date AND q1.esim_provider_code = q2.esim_provider_code
+ORDER BY utc_date, esim_provider_code;</pre>
+    <div class="qresult">Cero desvíos reales en iccids distintos, GB totales y costo total — las diferencias son ruido de punto flotante (1e-10 a 1e-13), no discrepancias de negocio.</div>
+  </details>
+
+  <p class="txt">Esto cierra una duda que quedó abierta al principio de esta validación: el grano más fino de la tabla nueva (múltiples filas por iccid/día, por categoría de tráfico) no infla ni distorsiona los agregados cuando se suma correctamente con <code>SUM()</code>/<code>COUNT(DISTINCT)</code>. La validación es sobre la coincidencia de agregados entre ambas tablas — no audita la lógica interna de la query de reconciliación (provista por Data), que asume correcta.</p>
+  <p class="txt" style="font-size:12px;color:var(--gm)">Nota aparte: <code>subscriber_id</code> pasa de nulo total a poblado de golpe el <strong>2026-07-31</strong> — coincide con la ventana del Finding 3.</p>
+</div>
+
+<div class="section">
+  <span class="section-num">Finding 3</span>
+  <h2 class="section-title">Ventana 31/07–01/08: varias señales coinciden, la causa común no está confirmada</h2>
+  <p class="txt">Cuatro observaciones caen en la misma ventana, lo que sugiere un evento de infraestructura único — pero no lo probamos, podrían ser fenómenos distintos coincidiendo. Se aisló el tráfico que en <code>fct_cons_and_order</code> vivía bajo el macro-provider <code>JSC</code> (<strong>ex-JSC</strong>) del resto (<strong>nativo</strong> — el que nunca estuvo bajo <code>JSC</code>). "Destino roto" = <code>destination_country_code_iso3 IN ('800','900')</code>, ambos placeholders combinados:</p>
+
+  <table class="m">
+    <thead><tr><th>Provider</th><th>Origen del tráfico</th><th style="text-align:right">% destino roto (800 o 900)</th></tr></thead>
+    <tbody>
+      <tr><td class="mn">H3A</td><td>nativo (nunca fue JSC)</td><td class="num" style="text-align:right">11,1%</td></tr>
+      <tr><td class="mn">H3A</td><td>ex-JSC</td><td class="num" style="text-align:right"><strong>46,8%</strong></td></tr>
+      <tr><td class="mn">CMI</td><td>nativo (nunca fue JSC)</td><td class="num" style="text-align:right">19,2%</td></tr>
+      <tr><td class="mn">CMI</td><td>ex-JSC</td><td class="num" style="text-align:right">21,0%</td></tr>
+    </tbody>
+  </table>
+
+  <details class="q">
+    <summary>Ver queries — aislar tráfico ex-JSC, confirmar estabilidad y magnitud del salto</summary>
+    <pre>WITH jsc_iccids AS (
+  SELECT DISTINCT iccid
+  FROM `hly--data--looker--79.dp_consumptions.fct_cons_and_order`
+  WHERE macro_esim_provider_code = 'JSC'
+)
+SELECT
+  n.esim_provider_code,
+  IF(n.iccid IN (SELECT iccid FROM jsc_iccids), 'ex-JSC', 'nativo') AS origen,
+  COUNT(*) AS filas,
+  COUNTIF(n.destination_country_code_iso3 IN ('800','900')) AS filas_rotas,
+  ROUND(100*SAFE_DIVIDE(COUNTIF(n.destination_country_code_iso3 IN ('800','900')), COUNT(*)),2) AS pct_roto
+FROM `hly--data--pro--57.dp_consumption.consumption_per_order_day` n
+WHERE n.utc_date BETWEEN '2026-07-31' AND '2026-08-26'
+  AND n.esim_provider_code IN ('H3A','CMI')
+GROUP BY 1,2
+ORDER BY 1,2;
+
+-- Salto de volumen día a día, no solo de %
+SELECT
+  utc_date, esim_provider_code, COUNT(*) AS filas,
+  COUNTIF(destination_country_code_iso3 IN ('800','900')) AS filas_rotas,
+  ROUND(100*SAFE_DIVIDE(COUNTIF(destination_country_code_iso3 IN ('800','900')), COUNT(*)),2) AS pct_roto
+FROM `hly--data--pro--57.dp_consumption.consumption_per_order_day`
+WHERE utc_date BETWEEN '2026-07-25' AND '2026-08-05'
+  AND esim_provider_code IN ('H3A','CMI')
+GROUP BY 1,2 ORDER BY 2,1;</pre>
+    <div class="qresult">Estable en banda 45,5%–49,9% durante 27 días — no es reproceso en curso. Y no es solo un salto de %: CMI pasa de ~5.500-6.000 filas/día a 517.887 el 01/08 (~93x); H3A pasa de 99.039 (31/07) a 889.046 el 01/08 (~9x). El <code>pct_roto</code> de CMI salta de 6,7% a 20,7% en ese mismo corte; el de H3A, que venía bajando todo julio, rebota de 21,3% a 42,75%.</div>
+  </details>
+
+  <p class="txt">Confirmación cruzada: los mecanismos de <strong>costo NULL</strong> ya reportados por Data para <code>ANT</code>/<code>BES</code>/<code>CUW</code> y <code>Feroe</code> (gestión en curso, no es foco de este documento) siguen presentes en esta tabla, con volumen histórico completo: <code>CMI/BES</code> 99,8%, <code>CMI/CUW</code> 99,24%, <code>H3A/FRO</code> 84,14%.</p>
+  <p class="txt">Dos casos grandes, no reportados hasta ahora: <code>CMI/KOR</code> (Corea del Sur) con <strong>221.492 filas</strong> de costo NULL sobre 2,98M (7,43%) — el segundo volumen absoluto más grande de toda la tabla después de <code>CUW</code> — y <code>CMI/BLR</code> (Bielorrusia) con 15,65% sobre 118.833 filas.</p>
+  <p class="txt" style="font-size:12px;color:var(--gm)">Patrón temporal que confirma la independencia de los dos mecanismos: el costo NULL de CMI se dispara (6,7%-12,5%) justo en el tramo feb-jul 2026 donde su problema de <em>destino</em> venía mejorando (Finding 1). H3A, en cambio, tiene su costo NULL casi enteramente concentrado en agosto 2026 (0,65%, resto del histórico ~0%) — coincide con el salto de volumen del Finding 3.</p>
+
+  <details class="q">
+    <summary>Ver queries — % de costo NULL por provider × destino (volumen absoluto) y evolución mensual</summary>
+    <pre>-- Por volumen absoluto, no solo por %, para no perder casos grandes con % bajo
+SELECT
+  esim_provider_code,
+  destination_country_code_iso3,
+  COUNT(*) AS filas,
+  COUNTIF(total_cost_eur IS NULL) AS filas_costo_null,
+  ROUND(100*SAFE_DIVIDE(COUNTIF(total_cost_eur IS NULL), COUNT(*)),2) AS pct_costo_null
+FROM `hly--data--pro--57.dp_consumption.consumption_per_order_day`
+GROUP BY 1,2
+HAVING COUNTIF(total_cost_eur IS NULL) > 0
+ORDER BY filas_costo_null DESC
+LIMIT 30;
+
+-- Evolución mensual
+SELECT
+  DATE_TRUNC(utc_date, MONTH) AS month,
+  esim_provider_code,
+  COUNT(*) AS filas,
+  COUNTIF(total_cost_eur IS NULL) AS filas_costo_null,
+  ROUND(100*SAFE_DIVIDE(COUNTIF(total_cost_eur IS NULL), COUNT(*)),2) AS pct_costo_null
+FROM `hly--data--pro--57.dp_consumption.consumption_per_order_day`
+GROUP BY 1,2
+ORDER BY 2,1;</pre>
+  </details>
+
+  <div class="callout green"><strong>Confirmado — son mecanismos independientes:</strong> el costo NULL no depende de si el destino resolvió. La tasa de costo NULL es incluso más alta en filas con destino <em>resuelto</em> (0,42%) que en filas con destino roto (0,28%) — lo opuesto a lo que se esperaría si el costo dependiera del país. Los casos ya conocidos (<code>ANT</code>/<code>BES</code>/<code>CUW</code>/<code>FRO</code>) tienen destino resuelto y son lo bastante grandes en volumen histórico (999.504 filas) como para explicar la mayor parte del costo NULL del lado "sano". Del lado roto, la gran mayoría de las filas sí tiene costo calculado — el costo no depende de tener el país resuelto.</div>
+  <details class="q">
+    <summary>Ver query y resultado — destino roto vs. costo NULL, a escala completa</summary>
+    <pre>SELECT
+  destination_country_code_iso3 IN ('800','900') AS destino_roto,
+  COUNT(*) AS filas,
+  COUNTIF(total_cost_eur IS NULL) AS filas_costo_null,
+  ROUND(100*SAFE_DIVIDE(COUNTIF(total_cost_eur IS NULL), COUNT(*)),2) AS pct_costo_null
+FROM `hly--data--pro--57.dp_consumption.consumption_per_order_day`
+GROUP BY 1;</pre>
+    <table class="m" style="margin-top:10px">
+      <thead><tr><th>destino_roto</th><th style="text-align:right">filas</th><th style="text-align:right">filas_costo_null</th><th style="text-align:right">pct_costo_null</th></tr></thead>
+      <tbody>
+        <tr><td class="mn">false (resuelto)</td><td class="num" style="text-align:right">236.156.472</td><td class="num" style="text-align:right">999.504</td><td class="num" style="text-align:right">0,42%</td></tr>
+        <tr><td class="mn">true (800/900)</td><td class="num" style="text-align:right">175.199.234</td><td class="num" style="text-align:right">488.358</td><td class="num" style="text-align:right">0,28%</td></tr>
+      </tbody>
+    </table>
+  </details>
+</div>
+
+<div class="section">
+  <span class="section-num">Finding 4</span>
+  <h2 class="section-title">Provider rename: riesgo operativo concreto para el query actual</h2>
+  <p class="txt"><code>3AU→H3A</code> y <code>CHM→CMI</code> confirmados (rename limpio, todo el histórico 2024-2026). <code>product_end_date_gm_v4</code> tiene un <code>CASE</code> hardcodeado sobre los nombres viejos para <code>fixed_iccid_cost</code> — sin actualizar, ese costo cae en <code>ELSE 0</code> de forma silenciosa. Hardcoding de los nombres nuevos ya autorizado por Data como solución de transición.</p>
+
+  <details class="q">
+    <summary>Ver query — crosswalk de provider entre tabla nueva y vieja</summary>
+    <pre>SELECT
+  n.esim_provider_code AS provider_nuevo,
+  v.esim_provider_code AS provider_viejo,
+  COUNT(DISTINCT n.iccid) AS iccids_matched
+FROM `hly--data--pro--57.dp_consumption.consumption_per_order_day` n
+JOIN `hly--data--looker--79.dp_consumptions.fct_cons_and_order` v
+  USING (iccid)
+GROUP BY 1, 2
+ORDER BY iccids_matched DESC
+LIMIT 50;</pre>
+    <div class="qresult">CMI↔CHM (8.095.577) y H3A↔3AU (7.555.758) son el rename limpio y dominante. OFR↔OFR (1.492.512) sin cambio de nombre.</div>
+  </details>
+
+  <table class="m">
+    <thead><tr><th>Provider nuevo</th><th>Provider viejo</th><th style="text-align:right">Iccids</th></tr></thead>
+    <tbody>
+      <tr><td class="mn">CMI</td><td>CHM</td><td class="num" style="text-align:right">8.095.577</td></tr>
+      <tr><td class="mn">H3A</td><td>3AU</td><td class="num" style="text-align:right">7.555.758</td></tr>
+      <tr><td class="mn">OFR</td><td>OFR</td><td class="num" style="text-align:right">1.492.512</td></tr>
+      <tr><td class="mn">H3A</td><td>CHM</td><td class="num" style="text-align:right">312.892</td></tr>
+      <tr><td class="mn">CMI</td><td>3AU</td><td class="num" style="text-align:right">311.641</td></tr>
+    </tbody>
+  </table>
+  <p class="txt" style="font-size:12px;color:var(--gm)">Las dos últimas filas (~4% del total) no están del todo explicadas — coinciden con la misma ventana del evento de infraestructura del 31/07-01/08 del Finding 3, consistente con reuso de iccid en el tiempo, pero no hay confirmación cerrada de esa causa.</p>
+</div>
+
+<div class="section">
+  <span class="section-num">Finding 5</span>
+  <h2 class="section-title">El mecanismo de destino ambiguo se comparte con el mart de Revenue — misma orden, no dos problemas independientes</h2>
+  <p class="txt">El mart de Revenue (<code>fct_revenue_prorated_product</code>) tiene su propia familia de códigos placeholder (<code>ZZE</code>, <code>ZZH</code>, <code>STA</code>, <code>CRC/CRE/CRM/CRA</code>, <code>WCP</code>) para productos multi-destino. Cruzando por <code>order_id</code> contra <code>consumption_per_order_day</code>, la gran mayoría de esas mismas órdenes cae en <code>900</code> del lado de Consumo:</p>
+
+  <table class="m">
+    <thead><tr><th>Código Revenue</th><th style="text-align:right">→ 900 (Consumo)</th><th style="text-align:right">→ país real (ISO-3 válido)</th></tr></thead>
+    <tbody>
+      <tr><td class="mn">ZZE</td><td class="num" style="text-align:right">713.107</td><td class="num" style="text-align:right">6.433</td></tr>
+      <tr><td class="mn">STA</td><td class="num" style="text-align:right">294.184</td><td class="num" style="text-align:right">55</td></tr>
+      <tr><td class="mn">CRC</td><td class="num" style="text-align:right">180.162</td><td class="num" style="text-align:right">98</td></tr>
+      <tr><td class="mn">CRM/CRE/CRA/ZZH/WCP</td><td class="num" style="text-align:right">221.264 (combinado)</td><td class="num" style="text-align:right">509 (combinado)</td></tr>
+      <tr><td class="mn">VIR</td><td class="num" style="text-align:right">0</td><td class="num" style="text-align:right">526 (resuelve limpio en ambos lados)</td></tr>
+    </tbody>
+  </table>
+  <p class="txt">No son dos bugs independientes — es la misma familia de productos multi-destino fallando en los dos marts a la vez. <code>VIR</code> muestra que no todo el grupo está roto por defecto.</p>
+  <details class="q">
+    <summary>Ver query — cruce de códigos ambiguos entre Revenue y Consumo</summary>
+    <pre>SELECT
+  r.destination_country AS revenue_code,
+  c.destination_country_code_iso3 AS consumption_code,
+  COUNT(*) AS n_matched
+FROM `hly--data--pro--57.dp_revenue.fct_revenue_prorated_product` r
+JOIN `hly--data--pro--57.dp_consumption.consumption_per_order_day` c
+  ON r.order_id = c.order_id
+WHERE r.destination_country IN ('ZZE','ZZH','STA','CRC','CRE','CRM','CRA','WCP','VIR')
+GROUP BY 1,2
+ORDER BY n_matched DESC;</pre>
+  </details>
+
+  <div class="callout green"><strong>Confirmado — no es legacy en general:</strong> acotando el mismo cruce a 2026, <code>STA</code>, <code>CRC</code>, <code>CRM</code>, <code>CRE</code>, <code>CRA</code> y <code>WCP</code> mantienen prácticamente el 100% de su volumen — es un problema activo hoy, no discontinuado como los bundles del Finding 1. <code>ZZH</code> es la excepción: solo 7,3% de su volumen sigue en 2026, mayormente histórico. <code>ZZE</code> queda en el medio — retiene 137.833 filas en 2026 (19,3% de su total histórico), no trivial pese a ser proporcionalmente menor.</div>
+  <details class="q">
+    <summary>Ver query y resultado — el mismo cruce, acotado a 2026</summary>
+    <pre>SELECT
+  r.destination_country AS revenue_code,
+  c.destination_country_code_iso3 AS consumption_code,
+  COUNT(*) AS n_matched
+FROM `hly--data--pro--57.dp_revenue.fct_revenue_prorated_product` r
+JOIN `hly--data--pro--57.dp_consumption.consumption_per_order_day` c
+  ON r.order_id = c.order_id
+WHERE r.destination_country IN ('ZZE','ZZH','STA','CRC','CRE','CRM','CRA','WCP','VIR')
+  AND c.utc_date >= '2026-01-01'
+GROUP BY 1,2
+ORDER BY n_matched DESC;</pre>
+    <table class="m" style="margin-top:10px">
+      <thead><tr><th>Código</th><th style="text-align:right">Full history</th><th style="text-align:right">Solo 2026</th><th style="text-align:right">% que queda</th></tr></thead>
+      <tbody>
+        <tr><td class="mn">STA</td><td class="num" style="text-align:right">294.184</td><td class="num" style="text-align:right">294.475</td><td class="num" style="text-align:right">~100%</td></tr>
+        <tr><td class="mn">CRC</td><td class="num" style="text-align:right">180.162</td><td class="num" style="text-align:right">180.407</td><td class="num" style="text-align:right">~100%</td></tr>
+        <tr><td class="mn">CRM</td><td class="num" style="text-align:right">95.530</td><td class="num" style="text-align:right">95.674</td><td class="num" style="text-align:right">~100%</td></tr>
+        <tr><td class="mn">CRE</td><td class="num" style="text-align:right">85.486</td><td class="num" style="text-align:right">85.811</td><td class="num" style="text-align:right">~100%</td></tr>
+        <tr><td class="mn">CRA</td><td class="num" style="text-align:right">22.142</td><td class="num" style="text-align:right">22.172</td><td class="num" style="text-align:right">~100%</td></tr>
+        <tr><td class="mn">WCP</td><td class="num" style="text-align:right">1.867</td><td class="num" style="text-align:right">1.868</td><td class="num" style="text-align:right">~100%</td></tr>
+        <tr><td class="mn">ZZE</td><td class="num" style="text-align:right">713.107</td><td class="num" style="text-align:right">137.833</td><td class="num" style="text-align:right">19,3%</td></tr>
+        <tr><td class="mn">ZZH</td><td class="num" style="text-align:right">16.239</td><td class="num" style="text-align:right">1.183</td><td class="num" style="text-align:right">7,3%</td></tr>
+      </tbody>
+    </table>
+  </details>
+  <p class="txt" style="font-size:12px;color:var(--gm)"><strong>Confirmado sobre ZZE:</strong> ni es puramente Hawaii ni es puramente una categoría amplia — es las dos cosas. En una muestra de sus SKUs, ~82% son <code>esim-hawaii-X-days</code> (Hawaii real, coincide con el código <code>USAHWI</code> del diccionario de producto), pero ~18% son <code>ESIMCHM*DAILY</code>/<code>ESIM3AUS*DAILY</code> — planes diarios genéricos sin país, del mismo tipo que ya vimos en el Finding 1. La etiqueta "Hawaii" es mayoritariamente correcta, pero incompleta.</p>
+</div>
+
+<div class="section">
+  <span class="section-num">Próximos pasos</span>
+  <ul class="next-list">
+    <li><span class="who">Pricing</span>Actualizar <code>product_end_date_gm_v4</code>: nombres de provider nuevos + columna <code>destination_country_code_iso3</code>.</li>
+    <li><span class="who">Data</span>Confirmar si el problema de país es exclusivamente de origen (CDR del proveedor) o hay un componente interno — ver Finding 1.</li>
+  </ul>
+</div>
+
+<div class="bottom">
+  <div class="bottom-sig">Pricing <span class="pink">·</span> Validación en curso</div>
+</div>
+
+</div>
+</body>
+</html>
