@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="es"><head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GA4 flat table — dos sugerencias desde Pricing</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Mulish:ital,wght@0,300;0,400;0,600;0,700;0,800;1,400&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--pink:#E6485C;--charcoal:#292B2E;--cs:#4A4D52;--gm:#64748B;--gl:#94A3B8;--paper:#FAFAFB;--card:#F8FAFC;--w:#FFFFFF;--rule:rgba(41,43,46,0.10);--rs:rgba(41,43,46,0.06);--green:#15803D;--gw:#E8F5EE;--warn:#B45309;--ww:#FDF3E7;--blue:#1D4ED8;--bw:#E8EFFD}
+*{margin:0;padding:0;box-sizing:border-box}body{font-family:'Mulish',sans-serif;background:var(--paper);color:var(--charcoal);line-height:1.5;-webkit-font-smoothing:antialiased}::selection{background:var(--pink);color:var(--w)}
+[data-lang="es"],[data-lang="en"]{display:none}body.lang-en [data-lang="en"]{display:revert}body.lang-es [data-lang="es"]{display:revert}body.lang-en span[data-lang="en"],body.lang-en strong[data-lang="en"],body.lang-en em[data-lang="en"],body.lang-en code[data-lang="en"]{display:inline}body.lang-es span[data-lang="es"],body.lang-es strong[data-lang="es"],body.lang-es em[data-lang="es"],body.lang-es code[data-lang="es"]{display:inline}
+.page{max-width:1100px;margin:0 auto;padding:56px 48px 80px}
+.top-bar{display:flex;justify-content:space-between;align-items:center;margin-bottom:40px;position:sticky;top:0;z-index:100;background:rgba(250,250,251,0.85);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);padding:16px 0;margin-left:-48px;margin-right:-48px;padding-left:48px;padding-right:48px;border-bottom:1px solid transparent;transition:border-color 0.3s}
+.top-bar-left{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.logo{display:flex;align-items:center}
+.tb-div{width:1px;height:16px;background:var(--rule)}
+.tb-label{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:600;letter-spacing:0.14em;text-transform:uppercase;color:var(--gm)}.tb-label .ver{font-size:9px;background:var(--pink);color:var(--w);padding:2px 6px;border-radius:3px;font-weight:700;letter-spacing:0.1em;margin-left:8px}
+.lang-toggle{display:flex;border:1px solid var(--rule);border-radius:999px;overflow:hidden}.lang-toggle button{background:transparent;border:none;padding:6px 14px;font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;color:var(--gm);cursor:pointer;letter-spacing:0.1em;transition:all 0.3s}.lang-toggle button.active{background:var(--charcoal);color:var(--w)}
+.head{margin-bottom:26px}.head-title{font-size:clamp(25px,3.6vw,36px);font-weight:800;letter-spacing:-0.03em;line-height:1.12;margin-bottom:14px}.head-title .accent{color:var(--pink)}.head-deck{font-size:15px;color:var(--cs);max-width:760px;line-height:1.6}.head-deck strong{color:var(--charcoal)}.head-deck code{font-family:'JetBrains Mono',monospace;font-size:13px;background:var(--card);border:1px solid var(--rule);border-radius:4px;padding:1px 5px;color:var(--charcoal)}
+.sit{background:var(--w);border:1px solid var(--rule);border-radius:14px;padding:18px 22px;margin-bottom:30px}.sit-label{font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:700;letter-spacing:0.16em;text-transform:uppercase;color:var(--pink);margin-bottom:8px}.sit p{font-size:13.5px;line-height:1.6;color:var(--cs);margin:0}.sit strong{color:var(--charcoal)}.sit code{font-family:'JetBrains Mono',monospace;font-size:12.5px;background:var(--card);border:1px solid var(--rule);border-radius:4px;padding:1px 5px;color:var(--charcoal)}
+.section-head{display:flex;align-items:baseline;gap:10px;margin-bottom:12px}
+.block-label{font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:700;letter-spacing:0.16em;text-transform:uppercase;color:var(--pink)}
+.block-sub{font-size:13px;color:var(--gm);line-height:1.5}.block-sub code{font-family:'JetBrains Mono',monospace;}
+.chequeo-wrap{background:var(--gw);border:1px solid rgba(21,128,61,0.18);border-radius:16px;padding:20px 22px;margin-bottom:38px}
+.chequeo-wrap .block-label{color:var(--green)}
+table.m{width:100%;border-collapse:collapse;background:var(--w);border-radius:12px;overflow:hidden;border:1px solid var(--rule);font-size:13px;margin-bottom:8px}table.m th{font-family:'JetBrains Mono',monospace;font-size:9px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--gm);padding:12px 14px;text-align:left;background:var(--card);border-bottom:1px solid var(--rule)}table.m td{padding:10px 14px;border-bottom:1px solid var(--rs);color:var(--cs);vertical-align:top;line-height:1.4}table.m tr:last-child td{border-bottom:none}table.m .mn{font-weight:700;color:var(--charcoal)}table.m .num{font-family:'JetBrains Mono',monospace;font-weight:600;color:var(--charcoal);white-space:nowrap}table.m .ok{color:var(--green);font-weight:700}table.m code{font-family:'JetBrains Mono',monospace;font-size:12px;}
+.req{background:var(--w);border:1px solid var(--rule);border-radius:16px;padding:22px 24px 20px;position:relative;overflow:hidden;margin-bottom:16px}.req::before{content:'';position:absolute;top:0;left:0;right:0;height:4px}.req.r1::before{background:var(--warn)}.req.r2::before{background:var(--blue)}
+.req-head{display:flex;align-items:baseline;gap:12px;margin-bottom:4px;flex-wrap:wrap}.req-num{font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase}.req.r1 .req-num{color:var(--warn)}.req.r2 .req-num{color:var(--blue)}
+.req-title{font-size:17px;font-weight:800;color:var(--charcoal);letter-spacing:-0.015em;line-height:1.25}.req-title code{font-family:'JetBrains Mono',monospace;}
+.req-body{font-size:14px;line-height:1.6;color:var(--cs);margin-top:12px}.req-body p{margin-bottom:10px}.req-body strong{color:var(--charcoal)}.req-body code{font-family:'JetBrains Mono',monospace;font-size:12.5px;background:var(--card);border:1px solid var(--rule);border-radius:4px;padding:1px 5px;color:var(--charcoal)}
+.req-sec{font-family:'JetBrains Mono',monospace;font-size:9px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--gm);margin:16px 0 6px}
+.evidence{display:flex;gap:14px;flex-wrap:wrap;margin:8px 0 2px}.ev{flex:1;min-width:150px;background:var(--card);border:1px solid var(--rule);border-radius:10px;padding:12px 14px}.ev .n{font-family:'JetBrains Mono',monospace;font-size:21px;font-weight:700;color:var(--charcoal);letter-spacing:-0.02em;line-height:1}.ev .l{font-size:11.5px;color:var(--gm);margin-top:6px;line-height:1.4}.ev .l strong{color:var(--cs)}
+.codeblock{background:#1e2024;border-radius:10px;padding:15px 17px;overflow-x:auto;margin:4px 0}.codeblock pre{font-family:'JetBrains Mono',monospace;font-size:12.5px;line-height:1.65;color:#e6e8ea;white-space:pre}.codeblock .c{color:#7f868d}.codeblock .k{color:#e6485c;font-weight:600}.codeblock .s{color:#8fb573}.codeblock .add{color:#9ecbff}
+details.q{border:1px solid var(--rule);border-radius:10px;background:var(--w);margin:10px 0 2px;overflow:hidden}
+details.q summary{cursor:pointer;list-style:none;padding:11px 16px;font-family:'JetBrains Mono',monospace;font-size:10.5px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:var(--pink);display:flex;align-items:center;gap:8px;user-select:none}
+details.q summary::-webkit-details-marker{display:none}details.q summary::before{content:'▶';font-size:8px;transition:transform 0.2s}details.q[open] summary::before{transform:rotate(90deg)}
+details.q .codeblock{margin:0 12px 12px}
+.bottom{border-top:1px solid var(--rule);padding-top:22px;margin-top:32px}.bottom p{font-size:14px;line-height:1.6;color:var(--cs);max-width:760px;margin-bottom:8px}.bottom strong{color:var(--charcoal)}.bottom code{font-family:'JetBrains Mono',monospace;font-size:12.5px;background:var(--card);border:1px solid var(--rule);border-radius:4px;padding:1px 5px;color:var(--charcoal)}.bottom-sig{font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:600;color:var(--gm);margin-top:16px}.bottom-sig .pink{color:var(--pink)}
+@media(max-width:800px){.page{padding:26px 18px 48px}.top-bar{margin-left:-18px;margin-right:-18px;padding-left:18px;padding-right:18px}.tb-div,.tb-label{display:none}}
+</style>
+</head>
+<body class="lang-es">
+<div class="page">
+
+<div class="top-bar">
+    <div class="top-bar-left">
+        <span class="logo">
+            <svg style="height:26px;width:auto" viewBox="0 0 26 32" fill="none" xmlns="http://www.w3.org/2000/svg" aria-label="Holafly">
+                <path fill-rule="evenodd" clip-rule="evenodd" d="M13.1151 13.519C17.302 14.3547 20.3139 13.9602 22.2514 12.3347V4.20114H25.8592V25.535H22.2514V16.1184C20.7622 16.8201 19.0142 17.1731 16.9913 17.1731C15.7959 17.1731 14.5039 17.0492 13.1151 16.8046V25.535H9.50866V15.9599C9.03462 15.8241 8.55231 15.6785 8.0594 15.5198C5.47279 14.6879 2.15403 15.0945 0.723524 15.7075L0 12.5309C2.07157 11.8148 5.76141 11.3847 8.9963 12.4255C9.16891 12.481 9.33908 12.534 9.50866 12.5865V4.20114H13.1151V13.519Z" fill="#E6485C"/>
+            </svg>
+        </span>
+        <span class="tb-div"></span>
+        <span class="tb-label">Pricing → Data · GA4 flat table <span class="ver">V1</span></span>
+    </div>
+    <div class="lang-toggle"><button id="btn-es" class="active">ES</button><button id="btn-en">EN</button></div>
+</div>
+
+<div class="head">
+    <h1 class="head-title"><span data-lang="es">Dos pedidos para<br><span class="accent">ga4_esim_flat_table</span>.</span><span data-lang="en">Two requests for<br><span class="accent">ga4_esim_flat_table</span>.</span></h1>
+    <p class="head-deck"><span data-lang="es">Desde Pricing vamos a consumir <code>ga4_esim_flat_table</code> como fuente del dashboard. La validamos y funciona muy bien. Abajo, primero lo que chequeamos, y después dos pedidos sobre la tabla — todo con las queries desplegables por si quieren verificarlas.</span><span data-lang="en">On the Pricing side we're going to consume <code>ga4_esim_flat_table</code> as the dashboard's source. We validated it and it works great. Below: first what we checked, then two requests on the table — all with collapsible queries in case you'd like to verify them.</span></p>
+</div>
+
+<div class="sit">
+    <div class="sit-label"><span data-lang="es">Alcance</span><span data-lang="en">Scope</span></div>
+    <p><span data-lang="es">Lo específico de Pricing (resolución de destino/días, clave de sesión) lo resolvemos en nuestro mart, no toca la tabla. Estas dos sugerencias son lo único que la involucra.</span><span data-lang="en">Everything Pricing-specific (destination/day resolution, session key) we handle in our own mart — it doesn't touch the table. These two suggestions are the only thing that involves it.</span></p>
+</div>
+
+<!-- ============ CHEQUEO ============ -->
+<div class="chequeo-wrap">
+    <div class="section-head">
+        <span class="block-label"><span data-lang="es">Chequeo · la tabla está lista</span><span data-lang="en">Check · the table is ready</span></span>
+    </div>
+    <div class="block-sub" style="margin-bottom:14px;"><span data-lang="es">Sobre <code>ga4_esim_flat_table</code> · 149 días · al 27/08/2026.</span><span data-lang="en">On <code>ga4_esim_flat_table</code> · 149 days · as of 2026-08-27.</span></div>
+    <table class="m">
+        <thead><tr><th style="width:280px;"><span data-lang="es">Chequeo</span><span data-lang="en">Check</span></th><th style="width:250px;"><span data-lang="es">Resultado</span><span data-lang="en">Result</span></th><th></th></tr></thead>
+        <tbody>
+            <tr><td class="mn"><span data-lang="es">Historia y volumen</span><span data-lang="en">History &amp; volume</span></td><td class="num">01/04 → 27/08 · 1.858M · ~12,5M/día</td><td><span class="ok">✓</span> <span data-lang="es">estable, particionada por día</span><span data-lang="en">stable, partitioned by day</span></td></tr>
+            <tr><td class="mn"><code>item_id</code> · <code>view_item</code>/<code>purchase</code></td><td class="num">100%</td><td><span class="ok">✓</span> <span data-lang="es">poblado — base limpia para resolver destino</span><span data-lang="en">populated — clean base to resolve destination</span></td></tr>
+        </tbody>
+    </table>
+    <details class="q">
+        <summary><span data-lang="es">Ver queries de chequeo</span><span data-lang="en">See the check queries</span></summary>
+        <div class="codeblock"><pre><span class="c">-- Historia y volumen</span>
+<span class="k">SELECT</span> <span class="k">MIN</span>(event_date) min_date, <span class="k">MAX</span>(event_date) max_date,
+       <span class="k">COUNT</span>(<span class="k">DISTINCT</span> event_date) distinct_days,
+       <span class="k">COUNT</span>(*) total_filas,
+       <span class="k">ROUND</span>(<span class="k">COUNT</span>(*) / <span class="k">COUNT</span>(<span class="k">DISTINCT</span> event_date)) filas_por_dia
+<span class="k">FROM</span> `hly--data--digital--d3.ga4_flat_tables.ga4_esim_flat_table`;
+
+<span class="c">-- item_id poblado en los dos eventos clave</span>
+<span class="k">SELECT</span> event_name, <span class="k">COUNT</span>(*) filas,
+  <span class="k">ROUND</span>(100 * <span class="k">SAFE_DIVIDE</span>(<span class="k">COUNTIF</span>(item_id <span class="k">IS NOT NULL</span>), <span class="k">COUNT</span>(*)), 1) pct_con_item_id
+<span class="k">FROM</span> `hly--data--digital--d3.ga4_flat_tables.ga4_esim_flat_table`
+<span class="k">WHERE</span> event_name <span class="k">IN</span> (<span class="s">'view_item'</span>, <span class="s">'purchase'</span>)
+<span class="k">GROUP BY</span> event_name;</pre></div>
+    </details>
+</div>
+
+<!-- ============ SUGERENCIAS ============ -->
+<div class="section-head">
+    <span class="block-label"><span data-lang="es">Pedidos sobre la tabla</span><span data-lang="en">Requests on the table</span></span>
+</div>
+
+<!-- SUGERENCIA 1 -->
+<div class="req r1">
+    <div class="req-head"><span class="req-num"><span data-lang="es">Pedido 1</span><span data-lang="en">Request 1</span></span></div>
+    <div class="req-title"><span data-lang="es">Incluir el event_param <code style="font-size:15px;">days_length</code> en la extracción</span><span data-lang="en">Include the <code style="font-size:15px;">days_length</code> event_param in the extraction</span></div>
+    <div class="req-body">
+        <p><span data-lang="es">Es una de las fuentes con las que resolvemos la duración del plan, y cubre filas que ninguna otra alcanza. Entiendo que no lo genera ningún modelo dbt (verificado: 0 hits en 40 ramas), así que habría que extraerlo del export crudo en la propia query de la flat. Si se reconstruye la tabla sin incluirlo, no queda en la flat y hay que volver a la fuente para recuperarlo.</span><span data-lang="en">It's one of the sources we use to resolve plan duration, and it covers rows no other source reaches. As far as we can tell no dbt model generates it (verified: 0 hits across 40 branches), so it has to be extracted from the raw export in the flat-table query itself. If the table is rebuilt without it, it won't be in the flat table and you'd have to go back to the source to recover it.</span></p>
+        <div class="evidence">
+            <div class="ev"><div class="n">4,81%</div><div class="l"><strong>view_item · 1.692.475 <span data-lang="es">filas</span><span data-lang="en">rows</span></strong><br><span data-lang="es">que solo <code style="font-family:'JetBrains Mono',monospace;">days_length</code> resuelve</span><span data-lang="en">only <code style="font-family:'JetBrains Mono',monospace;">days_length</code> resolves</span></div></div>
+            <div class="ev"><div class="n">1,03%</div><div class="l"><strong>purchase · 53.063 <span data-lang="es">filas</span><span data-lang="en">rows</span></strong><br><span data-lang="es">mismo criterio</span><span data-lang="en">same criterion</span></div></div>
+        </div>
+        <div class="req-sec"><span data-lang="es">Sería una línea</span><span data-lang="en">Would be one line</span></div>
+        <div class="codeblock"><pre><span class="c">-- en la sección de event_params:</span>
+(<span class="k">SELECT</span> value.int_value
+ <span class="k">FROM</span> <span class="k">UNNEST</span>(event_params)
+ <span class="k">WHERE</span> key = <span class="s">'days_length'</span>) <span class="k">AS</span> <span class="add">days_length</span></pre></div>
+        <details class="q">
+            <summary><span data-lang="es">Ver query del aporte único (con el %)</span><span data-lang="en">See the unique-contribution query (with %)</span></summary>
+            <div class="codeblock"><pre><span class="c">-- Medido sobre nuestra build de prueba, que ya trae el campo.</span>
+<span class="c">-- only_days_length = filas que ni item_variant ni el sufijo de item_id resuelven.</span>
+<span class="k">WITH</span> r <span class="k">AS</span> (
+  <span class="k">SELECT</span> event_name,
+    <span class="k">REGEXP_EXTRACT</span>(item_variant, <span class="s">r'^(\d+)-days?$'</span>) <span class="k">IS NOT NULL</span> <span class="k">AS</span> by_variant,
+    days_length <span class="k">IS NOT NULL</span>                                <span class="k">AS</span> by_days_length,
+    <span class="k">REGEXP_EXTRACT</span>(item_id, <span class="s">r'-(\d+)-days?$'</span>)     <span class="k">IS NOT NULL</span> <span class="k">AS</span> by_itemid_suffix
+  <span class="k">FROM</span> `hly--data--digital--d3.ga4_flat_tables.ga4_esim_flat_table_test`
+  <span class="k">WHERE</span> event_name <span class="k">IN</span> (<span class="s">'view_item'</span>, <span class="s">'purchase'</span>)
+)
+<span class="k">SELECT</span>
+  event_name,
+  <span class="k">COUNT</span>(*) <span class="k">AS</span> filas,
+  <span class="k">COUNTIF</span>(<span class="k">NOT</span> by_variant <span class="k">AND</span> <span class="k">NOT</span> by_itemid_suffix <span class="k">AND</span> by_days_length) <span class="k">AS</span> only_days_length,
+  <span class="k">ROUND</span>(100 * <span class="k">SAFE_DIVIDE</span>(
+    <span class="k">COUNTIF</span>(<span class="k">NOT</span> by_variant <span class="k">AND</span> <span class="k">NOT</span> by_itemid_suffix <span class="k">AND</span> by_days_length),
+    <span class="k">COUNT</span>(*)), 2) <span class="k">AS</span> <span class="add">pct_only_days_length</span>
+<span class="k">FROM</span> r <span class="k">GROUP BY</span> event_name;</pre></div>
+        </details>
+    </div>
+</div>
+
+<!-- SUGERENCIA 2 -->
+<div class="req r2">
+    <div class="req-head"><span class="req-num"><span data-lang="es">Pedido 2</span><span data-lang="en">Request 2</span></span></div>
+    <div class="req-title"><span data-lang="es">Filtrar <code style="font-size:15px;">user_pseudo_id</code> NULL y deduplicar en la construcción</span><span data-lang="en">Filter <code style="font-size:15px;">user_pseudo_id</code> NULL and dedup in the build</span></div>
+    <div class="req-body">
+        <p><span data-lang="es">La tabla trae hoy <strong>88,8M filas con <code>user_pseudo_id</code> NULL</strong> (eventos del widget de mensajería) y <strong>1,17% de duplicados exactos</strong>. Un <code>WHERE user_pseudo_id IS NOT NULL</code> más un <code>QUALIFY ROW_NUMBER()</code> de desempate los dejan afuera sin cambiar el grano.</span><span data-lang="en">The table currently carries <strong>88.8M rows with NULL <code>user_pseudo_id</code></strong> (messaging-widget events) and <strong>1.17% exact duplicates</strong>. A <code>WHERE user_pseudo_id IS NOT NULL</code> plus a tie-breaking <code>QUALIFY ROW_NUMBER()</code> leave them out without changing the grain.</span></p>
+        <div class="codeblock"><pre><span class="k">WHERE</span> _TABLE_SUFFIX <span class="k">BETWEEN</span> ... <span class="k">AND</span> ...
+  <span class="k">AND</span> <span class="add">user_pseudo_id IS NOT NULL</span>
+
+<span class="add">QUALIFY ROW_NUMBER() OVER (
+  PARTITION BY</span> user_pseudo_id, event_timestamp, event_name, item.item_id
+  <span class="add">ORDER BY</span> (geo.country = <span class="s">''</span> <span class="k">OR</span> geo.country <span class="k">IS NULL</span>) <span class="k">ASC</span>,
+           (<span class="k">SELECT</span> value.int_value <span class="k">FROM</span> <span class="k">UNNEST</span>(event_params)
+            <span class="k">WHERE</span> key = <span class="s">'engagement_time_msec'</span>) <span class="k">DESC</span>
+<span class="add">) = 1</span></pre></div>
+        <p style="font-size:13px;color:var(--gm);"><span data-lang="es">Si prefieren dejar la tabla base como está, una vista o tabla derivada limpia también nos sirve — lo que les resulte más cómodo.</span><span data-lang="en">If you'd rather leave the base table as-is, a clean derived view or table also works for us — whatever's easiest on your end.</span></p>
+        <details class="q">
+            <summary><span data-lang="es">Ver queries de NULLs y duplicados</span><span data-lang="en">See the NULLs &amp; duplicates queries</span></summary>
+            <div class="codeblock"><pre><span class="c">-- (a) Totales: NULLs y % de duplicados exactos sobre toda la historia</span>
+<span class="k">WITH</span> k <span class="k">AS</span> (
+  <span class="k">SELECT</span> user_pseudo_id, event_timestamp, event_name, item_id, <span class="k">COUNT</span>(*) c
+  <span class="k">FROM</span> `hly--data--digital--d3.ga4_flat_tables.ga4_esim_flat_table`
+  <span class="k">GROUP BY</span> 1,2,3,4
+)
+<span class="k">SELECT</span>
+  (<span class="k">SELECT</span> <span class="k">COUNT</span>(*) <span class="k">FROM</span> `hly--data--digital--d3.ga4_flat_tables.ga4_esim_flat_table`) total_filas,
+  (<span class="k">SELECT</span> <span class="k">COUNTIF</span>(user_pseudo_id <span class="k">IS NULL</span>)
+   <span class="k">FROM</span> `hly--data--digital--d3.ga4_flat_tables.ga4_esim_flat_table`) filas_user_null,
+  <span class="k">SUM</span>(c) - <span class="k">COUNT</span>(*) filas_duplicadas,
+  <span class="k">ROUND</span>(100 * <span class="k">SAFE_DIVIDE</span>(<span class="k">SUM</span>(c) - <span class="k">COUNT</span>(*), <span class="k">SUM</span>(c)), 2) pct_dup
+<span class="k">FROM</span> k;
+
+<span class="c">-- (b) Dónde se concentran los duplicados, en un día concreto.</span>
+<span class="c">--     Ajustá la fecha; la tabla está particionada por event_date, así que es barato.</span>
+<span class="k">WITH</span> k <span class="k">AS</span> (
+  <span class="k">SELECT</span> event_name, user_pseudo_id, event_timestamp, item_id, <span class="k">COUNT</span>(*) c
+  <span class="k">FROM</span> `hly--data--digital--d3.ga4_flat_tables.ga4_esim_flat_table`
+  <span class="k">WHERE</span> event_date = <span class="k">DATE</span> <span class="s">'2026-08-15'</span>
+  <span class="k">GROUP BY</span> 1,2,3,4
+)
+<span class="k">SELECT</span>
+  event_name,
+  <span class="k">SUM</span>(c) - <span class="k">COUNT</span>(*)               <span class="k">AS</span> filas_duplicadas,
+  <span class="k">COUNTIF</span>(user_pseudo_id <span class="k">IS NULL</span>) <span class="k">AS</span> grupos_user_null
+<span class="k">FROM</span> k
+<span class="k">GROUP BY</span> event_name
+<span class="k">ORDER BY</span> filas_duplicadas <span class="k">DESC</span>
+<span class="k">LIMIT</span> 20;</pre></div>
+        </details>
+    </div>
+</div>
+
+<div class="bottom">
+    <p><span data-lang="es">Con esas dos, conectamos el mart de Pricing sobre <code>ga4_esim_flat_table</code> y quedamos en la misma fuente. Gracias por dejar la tabla lista — abiertos a cualquier approach que prefieran.</span><span data-lang="en">With those two, we wire the Pricing mart on top of <code>ga4_esim_flat_table</code> and we're on the same source. Thanks for getting the table ready — open to whatever approach you prefer.</span></p>
+    <div class="bottom-sig">— Fernando <span class="pink">·</span> Pricing &amp; Data</div>
+</div>
+
+</div>
+<script>
+document.getElementById('btn-es').addEventListener('click',function(){document.body.classList.remove('lang-en');document.body.classList.add('lang-es');this.classList.add('active');document.getElementById('btn-en').classList.remove('active')});
+document.getElementById('btn-en').addEventListener('click',function(){document.body.classList.remove('lang-es');document.body.classList.add('lang-en');this.classList.add('active');document.getElementById('btn-es').classList.remove('active')});
+window.addEventListener('scroll',function(){document.querySelector('.top-bar').style.borderBottomColor=window.scrollY>20?'rgba(41,43,46,0.10)':'transparent'},{passive:true});
+</script>
+</body></html>
