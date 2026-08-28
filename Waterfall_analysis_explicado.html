@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Waterfall de Revenue & Profit — Explicado</title>
+<link href="https://fonts.googleapis.com/css2?family=Mulish:wght@400;600;700;800&family=JetBrains+Mono:wght@600;700&display=swap" rel="stylesheet">
+<style>
+:root{--pink:#E6485C;--charcoal:#292B2E;--cs:#4A4D52;--gm:#64748B;--gl:#94A3B8;--paper:#FAFAFB;--card:#F8FAFC;--w:#FFFFFF;--rule:rgba(41,43,46,0.10);--rs:rgba(41,43,46,0.06);--green:#15803D;--gw:#E8F5EE;--warn:#B45309;--ww:#FDF3E7;--blue:#1D4ED8;--bw:#E8EFFD;--purple:#7C3AED;--pw:#F3EEFE}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Mulish',-apple-system,sans-serif;background:var(--paper);color:var(--charcoal);line-height:1.5;-webkit-font-smoothing:antialiased}
+.page{max-width:1100px;margin:0 auto;padding:40px 32px 80px}
+.top-bar{display:flex;align-items:center;gap:14px;margin-bottom:32px;position:sticky;top:0;z-index:100;background:rgba(250,250,251,0.9);backdrop-filter:blur(16px);padding:16px 0;border-bottom:1px solid var(--rule)}
+.logo svg{height:22px;width:auto}
+.top-bar-txt{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;color:var(--gm)}
+.top-bar .ver{font-size:9px;background:var(--blue);color:var(--w);padding:2px 6px;border-radius:3px;font-weight:700;letter-spacing:0.1em;margin-left:6px}
+.head{margin-bottom:32px}
+.head-title{font-size:clamp(24px,4vw,36px);font-weight:800;letter-spacing:-0.02em;line-height:1.15;margin-bottom:14px}
+.head-title .accent{color:var(--pink)}
+.head-deck{font-size:14px;color:var(--cs);max-width:780px;line-height:1.6}
+.head-deck code{font-family:'JetBrains Mono',monospace;font-size:12.5px;background:var(--card);padding:1px 6px;border-radius:4px;border:1px solid var(--rule)}
+.toc{background:var(--w);border:1px solid var(--rule);border-radius:14px;padding:18px 22px;margin-bottom:32px;font-size:13px}
+.toc-label{font-family:'JetBrains Mono',monospace;font-size:9px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;color:var(--pink);margin-bottom:10px}
+.toc ol{padding-left:18px;columns:2;gap:24px}
+.toc li{margin-bottom:6px;color:var(--cs)}
+.toc a{color:var(--cs);text-decoration:none}
+.toc a:hover{color:var(--pink)}
+.section{margin-bottom:44px;scroll-margin-top:80px}
+.section-num{font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;color:var(--pink);margin-bottom:6px;display:block}
+.section-title{font-size:21px;font-weight:800;letter-spacing:-0.02em;margin-bottom:16px}
+.sub-title{font-size:15px;font-weight:800;color:var(--charcoal);margin:22px 0 10px}
+p.txt{font-size:13.5px;line-height:1.68;color:var(--cs);margin-bottom:12px}
+p.txt strong{color:var(--charcoal)}
+p.txt code,li code{font-family:'JetBrains Mono',monospace;font-size:12.5px;background:var(--card);padding:1px 6px;border-radius:4px;border:1px solid var(--rule)}
+ul.txt{font-size:13.5px;line-height:1.68;color:var(--cs);margin:0 0 14px 20px}
+ul.txt li{margin-bottom:7px}
+ul.txt li strong{color:var(--charcoal)}
+.callout{background:var(--card);border:1px solid var(--rule);border-left:4px solid var(--pink);border-radius:0 12px 12px 0;padding:14px 18px;margin:16px 0;font-size:13px;line-height:1.65;color:var(--cs)}
+.callout strong{color:var(--charcoal)}
+.callout.green{border-left-color:var(--green);background:var(--gw)}
+.callout.warn{border-left-color:var(--warn);background:var(--ww)}
+.callout.blue{border-left-color:var(--blue);background:var(--bw)}
+.callout.purple{border-left-color:var(--purple);background:var(--pw)}
+.eq{background:#1E2023;border-radius:12px;padding:18px 22px;margin:16px 0;font-family:'JetBrains Mono',monospace;font-size:13.5px;line-height:1.9;color:#E8E9EB;overflow-x:auto}
+.eq .lbl{color:#94A3B8}
+.eq .g{color:#4ADE80}.eq .r{color:#FB7185}.eq .p{color:#C4B5FD}.eq .y{color:#FCD34D}
+.eq b{color:#fff;font-weight:700}
+table.m{width:100%;border-collapse:collapse;background:var(--w);border-radius:12px;overflow:hidden;border:1px solid var(--rule);font-size:12.5px;margin:8px 0 16px}
+table.m th{font-family:'JetBrains Mono',monospace;font-size:9px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--gm);padding:10px 12px;text-align:right;background:var(--card);border-bottom:1px solid var(--rule)}
+table.m th:first-child{text-align:left}
+table.m td{padding:9px 12px;border-bottom:1px solid var(--rs);color:var(--cs);vertical-align:middle;text-align:right;font-family:'JetBrains Mono',monospace}
+table.m td:first-child{text-align:left;font-family:'Mulish',sans-serif}
+table.m tr:last-child td{border-bottom:none}
+table.m .mn{font-weight:700;color:var(--charcoal)}
+table.m .pos{color:var(--green);font-weight:700}
+table.m .neg{color:var(--pink);font-weight:700}
+table.m tr.hi{background:#FFFCF5}
+.step{display:flex;gap:14px;margin:12px 0;align-items:flex-start}
+.step .n{font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700;color:var(--w);background:var(--charcoal);width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
+.step .b{font-size:13px;line-height:1.6;color:var(--cs)}
+.step .b strong{color:var(--charcoal)}
+.step .b code{font-family:'JetBrains Mono',monospace;font-size:12px;background:var(--card);padding:1px 5px;border-radius:4px;border:1px solid var(--rule)}
+.chartwrap{background:var(--w);border:1px solid var(--rule);border-radius:14px;padding:20px 22px 12px;margin:18px 0}
+.chartwrap .cap{font-family:'JetBrains Mono',monospace;font-size:9px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--gm);margin-bottom:4px}
+.chartwrap .note{font-size:11.5px;color:var(--gl);margin-top:4px}
+.bottom{border-top:1px solid var(--rule);padding-top:20px;margin-top:20px}
+.bottom p{font-size:13px;line-height:1.6;color:var(--cs)}
+.bottom-sig{font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:600;color:var(--gm);margin-top:14px}
+.bottom-sig .pink{color:var(--pink)}
+@media(max-width:800px){.page{padding:24px 16px 56px}.toc ol{columns:1}}
+</style>
+</head>
+<body>
+<div class="page">
+
+<div class="top-bar">
+  <span class="logo"><svg viewBox="0 0 104 32" fill="none" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M13.1151 13.519C17.302 14.3547 20.3139 13.9602 22.2514 12.3347V4.20114H25.8592V25.535H22.2514V16.1184C20.7622 16.8201 19.0142 17.1731 16.9913 17.1731C15.7959 17.1731 14.5039 17.0492 13.1151 16.8046V25.535H9.50866V15.9599C9.03462 15.8241 8.55231 15.6785 8.0594 15.5198C5.47279 14.6879 2.15403 15.0945 0.723524 15.7075L0 12.5309C2.07157 11.8148 5.76141 11.3847 8.9963 12.4255C9.16891 12.481 9.33908 12.534 9.50866 12.5865V4.20114H13.1151V13.519Z" fill="#E6485C"/></svg></span>
+  <span class="top-bar-txt">Pricing · Waterfall Revenue & Profit<span class="ver">DIDÁCTICO</span></span>
+</div>
+
+<div class="head">
+  <h1 class="head-title">Cómo leer el <span class="accent">Waterfall</span> de Revenue &amp; Profit</h1>
+  <p class="head-deck">El waterfall responde una sola pregunta: cuando el revenue de un experimento se movió de A a B, <strong>¿cuánto fue por vender más/menos unidades y cuánto por cobrar distinto cada una?</strong> Esta guía lo construye desde cero, con los números reales de hoy (ventana pre = <code>cutover</code> → launch−1; post = launch → hoy). PPC-108.</p>
+</div>
+
+<div class="toc">
+  <div class="toc-label">Contenido</div>
+  <ol>
+    <li><a href="#s1">La pregunta que responde</a></li>
+    <li><a href="#s2">La única identidad que hay que creer</a></li>
+    <li><a href="#s3">Ejemplo trabajado: Canadá (bajó precio)</a></li>
+    <li><a href="#s4">El espejo: Marruecos (subió precio)</a></li>
+    <li><a href="#s5">Los 8 destinos de un vistazo</a></li>
+    <li><a href="#s6">El lado Profit (GM) y por qué Cost = 0</a></li>
+    <li><a href="#s7">Cómo leer cualquier fila</a></li>
+    <li><a href="#s8">Qué NO es este análisis</a></li>
+  </ol>
+</div>
+
+<!-- S1 -->
+<div class="section" id="s1">
+  <span class="section-num">Sección 1</span>
+  <h2 class="section-title">La pregunta que responde</h2>
+  <p class="txt">Bajamos (o subimos) el precio de un destino y semanas después el revenue diario es distinto. Un número suelto — "revenue +7,6%" — no dice <em>por qué</em>. Podrían haber pasado dos cosas opuestas al mismo tiempo:</p>
+  <ul class="txt">
+    <li><strong>Efecto volumen:</strong> el precio más barato atrajo más clientes → más órdenes.</li>
+    <li><strong>Efecto precio:</strong> pero cada orden ahora deja menos plata (ticket promedio más bajo).</li>
+  </ul>
+  <p class="txt">El resultado neto puede ser positivo o negativo según cuál gane. El waterfall <strong>separa esos dos empujones</strong> y los pone en la misma escala de euros/día, para ver quién ganó. Eso es todo lo que hace. Cada destino queda descripto por dos flechas: una de volumen y una de precio, que sumadas dan el cambio total de revenue.</p>
+  <div class="callout blue"><strong>Intuición:</strong> imaginá el revenue como <code>órdenes × ticket</code>. Si muevo las dos palancas a la vez, quiero saber cuánto aportó cada palanca por separado. El waterfall es esa cuenta.</div>
+</div>
+
+<!-- S2 -->
+<div class="section" id="s2">
+  <span class="section-num">Sección 2</span>
+  <h2 class="section-title">La única identidad que hay que creer</h2>
+  <p class="txt">Todo sale de una igualdad que ya conocés. El revenue diario es órdenes por día multiplicado por el ticket promedio (AOV):</p>
+  <div class="eq"><span class="lbl">Revenue/día</span> = <b>Órdenes/día</b> × <b>AOV</b><br><span class="lbl">R</span> = <b>O</b> × <b>A</b></div>
+  <p class="txt">Tenemos dos fotos: <strong>pre</strong> (antes del cambio) y <strong>post</strong> (después). El cambio total de revenue es <code>R_post − R_pre</code>. La descomposición lo parte en dos piezas que <strong>suman exactamente</strong> ese total:</p>
+  <div class="eq">
+<span class="lbl">Volume</span> = ( <b>O_post − O_pre</b> ) × <span class="y">A_pre</span>&nbsp;&nbsp;<span class="lbl">← cambio de órdenes, valuado al precio VIEJO</span><br>
+<span class="lbl">Price&nbsp;</span> = ( <b>A_post − A_pre</b> ) × <span class="y">O_post</span>&nbsp;&nbsp;<span class="lbl">← cambio de ticket, valuado al volumen NUEVO</span><br>
+<br>
+<span class="lbl">Volume + Price</span> = R_post − R_pre&nbsp;&nbsp;<span class="g">✓ siempre cierra exacto</span>
+  </div>
+  <p class="txt">¿Por qué esa asimetría rara — volumen al precio <em>viejo</em>, precio al volumen <em>nuevo</em>? Porque es la forma que hace que las dos piezas sumen el total sin dejar resto. Primero "movés" solo las órdenes manteniendo el precio viejo (eso es Volume); después, ya con las órdenes nuevas fijas, movés el precio (eso es Price). Es el "walk" estándar de un waterfall.</p>
+  <div class="callout"><strong>Lo importante:</strong> no hay ningún supuesto acá. Volume y Price salen de cuatro números medidos (<code>O_pre</code>, <code>O_post</code>, <code>A_pre</code>, <code>A_post</code>) que ya calcula la hoja <code>kpi</code>. Es aritmética, no un modelo.</div>
+</div>
+
+<!-- S3 -->
+<div class="section" id="s3">
+  <span class="section-num">Sección 3</span>
+  <h2 class="section-title">Ejemplo trabajado: Canadá (bajó precio −11%)</h2>
+  <p class="txt">Los cuatro números medidos para Canadá, ventana de experimento (15-jul → 19-ago, congelada en el rollback):</p>
+  <table class="m">
+    <thead><tr><th>Métrica</th><th>pre</th><th>post</th><th>cambio</th></tr></thead>
+    <tbody>
+      <tr><td class="mn">Órdenes/día (O)</td><td>782,3</td><td>908,9</td><td class="pos">+126,6</td></tr>
+      <tr><td class="mn">AOV — ticket (A)</td><td>€37,27</td><td>€34,52</td><td class="neg">−€2,75</td></tr>
+    </tbody>
+  </table>
+  <p class="txt">Bajó el precio: el ticket cae €2,75, pero las órdenes suben 126,6/día. ¿Quién gana? La cuenta:</p>
+  <div class="step"><div class="n">1</div><div class="b"><strong>R_pre</strong> = O_pre × A_pre = <code>782,3 × 37,27</code> = <strong>€29.155/día</strong>. El punto de partida.</div></div>
+  <div class="step"><div class="n">2</div><div class="b"><strong>Volume</strong> = (908,9 − 782,3) × 37,27 = <code>126,6 × 37,27</code> = <strong style="color:var(--green)">+€4.717/día</strong>. Las órdenes extra, valuadas al ticket viejo.</div></div>
+  <div class="step"><div class="n">3</div><div class="b"><strong>Price</strong> = (34,52 − 37,27) × 908,9 = <code>−2,75 × 908,9</code> = <strong style="color:var(--pink)">−€2.503/día</strong>. El ticket más bajo, sobre todas las órdenes nuevas.</div></div>
+  <div class="step"><div class="n">4</div><div class="b"><strong>R_post</strong> = 29.155 + 4.717 − 2.503 = <strong>€31.370/día</strong>. Chequeo: 908,9 × 34,52 = €31.370 ✓ cierra.</div></div>
+  <p class="txt">El volumen (+€4.717) le ganó al precio (−€2.503). Neto: <strong style="color:var(--green)">+€2.215/día, o +7,6%</strong>. El corte de precio funcionó: atrajo suficientes órdenes como para compensar de sobra el ticket más chico.</p>
+
+  <div class="chartwrap">
+    <div class="cap">Canadá · Revenue/día · pre → post</div>
+    <svg viewBox="0 0 620 330" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;font-family:'Mulish',sans-serif">
+      <!-- gridlines -->
+      <line x1="40" y1="280" x2="600" y2="280" stroke="#E2E8F0" stroke-width="1"/>
+      <!-- connectors -->
+      <line x1="129" y1="201" x2="186" y2="201" stroke="#94A3B8" stroke-width="1.2" stroke-dasharray="3 3"/>
+      <line x1="264" y1="29"  x2="321" y2="29"  stroke="#94A3B8" stroke-width="1.2" stroke-dasharray="3 3"/>
+      <line x1="399" y1="120" x2="456" y2="120" stroke="#94A3B8" stroke-width="1.2" stroke-dasharray="3 3"/>
+      <!-- R_pre -->
+      <rect x="51" y="201" width="78" height="79" rx="2" fill="#64748B"/>
+      <text x="90" y="195" text-anchor="middle" font-size="13" font-weight="700" fill="#292B2E">€29.155</text>
+      <text x="90" y="298" text-anchor="middle" font-size="11" font-weight="700" fill="#64748B">R_pre</text>
+      <!-- Volume (up, green) -->
+      <rect x="186" y="29" width="78" height="172" rx="2" fill="#15803D"/>
+      <text x="225" y="22" text-anchor="middle" font-size="13" font-weight="700" fill="#15803D">+€4.717</text>
+      <text x="225" y="298" text-anchor="middle" font-size="11" font-weight="700" fill="#64748B">Volume</text>
+      <text x="225" y="312" text-anchor="middle" font-size="9.5" fill="#94A3B8">+126,6 órd/día</text>
+      <!-- Price (down, pink) -->
+      <rect x="321" y="29" width="78" height="91" rx="2" fill="#E6485C"/>
+      <text x="360" y="22" text-anchor="middle" font-size="13" font-weight="700" fill="#E6485C">−€2.503</text>
+      <text x="360" y="298" text-anchor="middle" font-size="11" font-weight="700" fill="#64748B">Price</text>
+      <text x="360" y="312" text-anchor="middle" font-size="9.5" fill="#94A3B8">−€2,75 ticket</text>
+      <!-- R_post -->
+      <rect x="456" y="120" width="78" height="160" rx="2" fill="#292B2E"/>
+      <text x="495" y="114" text-anchor="middle" font-size="13" font-weight="700" fill="#292B2E">€31.370</text>
+      <text x="495" y="298" text-anchor="middle" font-size="11" font-weight="700" fill="#64748B">R_post</text>
+      <text x="495" y="312" text-anchor="middle" font-size="9.5" fill="#15803D" font-weight="700">+7,6%</text>
+    </svg>
+    <div class="note">▲ Eje vertical recortado (empieza en €27.000) para que se vean los saltos. Las barras flotantes son Volume y Price; las grises/negras son los totales pre y post.</div>
+  </div>
+</div>
+
+<!-- S4 -->
+<div class="section" id="s4">
+  <span class="section-num">Sección 4</span>
+  <h2 class="section-title">El espejo: Marruecos (subió precio +15%)</h2>
+  <p class="txt">Marruecos es el único que <strong>subió</strong> precio, y sirve justo para ver el waterfall al revés. Acá el ticket sube y las órdenes caen:</p>
+  <table class="m">
+    <thead><tr><th>Métrica</th><th>pre</th><th>post</th><th>cambio</th></tr></thead>
+    <tbody>
+      <tr><td class="mn">Órdenes/día (O)</td><td>1.497,0</td><td>1.281,5</td><td class="neg">−215,5</td></tr>
+      <tr><td class="mn">AOV — ticket (A)</td><td>€19,47</td><td>€24,27</td><td class="pos">+€4,80</td></tr>
+    </tbody>
+  </table>
+  <div class="step"><div class="n">1</div><div class="b"><strong>R_pre</strong> = 1.497,0 × 19,47 = <strong>€29.142/día</strong>.</div></div>
+  <div class="step"><div class="n">2</div><div class="b"><strong>Volume</strong> = −215,5 × 19,47 = <strong style="color:var(--pink)">−€4.195/día</strong>. Perdimos órdenes por el precio más caro.</div></div>
+  <div class="step"><div class="n">3</div><div class="b"><strong>Price</strong> = +4,80 × 1.281,5 = <strong style="color:var(--green)">+€6.156/día</strong>. Pero cada orden que quedó deja mucho más.</div></div>
+  <div class="step"><div class="n">4</div><div class="b"><strong>R_post</strong> = 29.142 − 4.195 + 6.156 = <strong>€31.102/día</strong> (+6,7%).</div></div>
+  <p class="txt">Signos <strong>exactamente al revés</strong> que Canadá: Volume negativo, Price positivo. El precio le ganó al volumen. Misma máquina, palanca opuesta.</p>
+  <div class="callout green"><strong>La regla mental:</strong> un corte de precio sano se ve como <span style="color:var(--green);font-weight:700">Volume verde</span> + <span style="color:var(--pink);font-weight:700">Price rojo</span>, con el verde ganando. Una suba sana se ve al revés. Si un corte de precio te da Volume chico y Price muy rojo, la demanda no respondió — mala señal.</div>
+</div>
+
+<!-- S5 -->
+<div class="section" id="s5">
+  <span class="section-num">Sección 5</span>
+  <h2 class="section-title">Los 8 destinos de un vistazo</h2>
+  <p class="txt">La misma cuenta para los 8, con los valores de hoy. Verde = aporta revenue, rojo = resta. La última columna es el neto.</p>
+  <table class="m">
+    <thead><tr><th>Destino</th><th>R_pre</th><th>Volume</th><th>Price</th><th>R_post</th><th>ΔR%</th></tr></thead>
+    <tbody>
+      <tr class="hi"><td class="mn">Canadá</td><td>29.155</td><td class="pos">+4.717</td><td class="neg">−2.503</td><td>31.370</td><td class="pos">+7,6%</td></tr>
+      <tr class="hi"><td class="mn">Marruecos</td><td>29.142</td><td class="neg">−4.195</td><td class="pos">+6.156</td><td>31.102</td><td class="pos">+6,7%</td></tr>
+      <tr><td class="mn">México</td><td>24.104</td><td class="pos">+2.948</td><td class="neg">−1.018</td><td>26.033</td><td class="pos">+8,0%</td></tr>
+      <tr><td class="mn">Perú</td><td>12.203</td><td class="pos">+2.885</td><td class="neg">−1.003</td><td>14.085</td><td class="pos">+15,4%</td></tr>
+      <tr><td class="mn">España</td><td>35.478</td><td class="pos">+4.943</td><td class="neg">−5.011</td><td>35.411</td><td class="neg">−0,2%</td></tr>
+      <tr><td class="mn">Italia</td><td>22.181</td><td class="pos">+2.930</td><td class="neg">−2.635</td><td>22.476</td><td class="pos">+1,3%</td></tr>
+      <tr><td class="mn">EE.UU.</td><td>136.184</td><td class="pos">+11.531</td><td class="neg">−2.120</td><td>145.595</td><td class="pos">+6,9%</td></tr>
+      <tr><td class="mn">Suiza</td><td>16.133</td><td class="pos">+5.070</td><td class="neg">−1.051</td><td>20.153</td><td class="pos">+24,9%</td></tr>
+    </tbody>
+  </table>
+  <p class="txt">Siete de ocho comparten la firma del corte de precio: <strong>Volume verde grande, Price rojo chico, neto positivo</strong>. Marruecos es el espejo. Los dos casos que casi no se mueven son reveladores:</p>
+  <ul class="txt">
+    <li><strong>España (−0,2%):</strong> Volume y Price casi se cancelan (+4.943 vs −5.011). El corte trajo órdenes, pero justo las suficientes para empatar el ticket perdido. Elasticidad de manual: revenue plano.</li>
+    <li><strong>Italia (+1,3%):</strong> parecido, apenas positivo. La demanda respondió, pero poco.</li>
+    <li><strong>Suiza (+24,9%):</strong> Volume enorme (+5.070) con Price mínimo (−1.051). La demanda saltó muchísimo ante un corte chico — el más elástico del grupo.</li>
+  </ul>
+</div>
+
+<!-- S6 -->
+<div class="section" id="s6">
+  <span class="section-num">Sección 6</span>
+  <h2 class="section-title">El lado Profit (GM) y por qué Cost = 0 hoy</h2>
+  <p class="txt">El waterfall de profit es el mismo, pero en vez de revenue mira <strong>gross margin</strong> (GM = revenue × margen%). La lógica: si de cada euro de revenue te quedás con un margen fijo <code>gm%</code>, entonces cada bucket de revenue se convierte en su versión de margen simplemente multiplicándolo por <code>gm%</code>:</p>
+  <div class="eq">
+<span class="lbl">GM_pre&nbsp;&nbsp;&nbsp;</span> = R_pre&nbsp;&nbsp;× <span class="y">gm%</span><br>
+<span class="lbl">Vol(GM)&nbsp;&nbsp;</span> = Volume × <span class="y">gm%</span><br>
+<span class="lbl">Price(GM)&nbsp;</span> = Price&nbsp;&nbsp;× <span class="y">gm%</span><br>
+<span class="lbl">Cost&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span> = R_post × ( <span class="y">gm%_post − gm%_pre</span> )&nbsp;&nbsp;<span class="lbl">← cambio en la TASA de margen</span>
+  </div>
+  <p class="txt">Los tres primeros buckets son el walk de revenue "encogido" por el margen. El cuarto, <strong>Cost</strong>, es distinto: captura si el <em>margen mismo</em> cambió — es decir, si el costo unitario subió o bajó entre pre y post.</p>
+  <div class="callout warn"><strong>Por qué Cost = 0 hoy.</strong> Para medir <code>gm%_post</code> necesitás el costo real por orden, y ese dato <strong>no está en el pipeline de monitoreo</strong> (<code>bq_data</code> trae órdenes y revenue, no costo). Así que hoy usamos un <code>gm%</code> fijo — el margen rev-ponderado del archivo de diseño de cada experimento — igual en pre y post. Con el margen constante, <code>gm%_post − gm%_pre = 0</code>, entonces <strong>Cost = 0</strong> y el profit se mueve solo por volumen y precio.</div>
+  <div class="callout blue"><strong>Consecuencia directa:</strong> mientras Cost = 0, el <code>ΔGM%</code> de cada fila es <strong>idéntico</strong> al <code>ΔR%</code>. Si en tu hoja no coinciden, hay algo mal apuntado. (Es el check que ya viste: las dos columnas dan lo mismo.)</div>
+  <div class="callout purple"><strong>Fase 2 — el hook.</strong> Cuando Data agregue <code>cost_eur</code> a la query conectada, <code>gm%_post</code> pasa a medirse de verdad y el bucket <strong>Cost</strong> se enciende solo. Ahí se puede además partir en <strong>Cost</strong> (el costo unitario que se movió dentro de cada destino) vs <strong>Cost Mix</strong> (cambió qué destinos pesan más en el portafolio — un país de bajo margen creciendo baja el GM% agregado sin que ningún costo unitario se mueva). Esos dos buckets son los que el ticket pide para el waterfall completo; hoy quedan en 0 a la espera del dato.</div>
+</div>
+
+<!-- S7 -->
+<div class="section" id="s7">
+  <span class="section-num">Sección 7</span>
+  <h2 class="section-title">Cómo leer cualquier fila — chuleta</h2>
+  <table class="m">
+    <thead><tr><th>Si ves…</th><th>Significa</th></tr></thead>
+    <tbody>
+      <tr><td class="mn" style="color:var(--green)">Volume verde grande + Price rojo chico</td><td style="text-align:left">Corte de precio que funcionó: la demanda respondió fuerte. (Suiza, Perú.)</td></tr>
+      <tr><td class="mn">Volume y Price casi iguales y opuestos</td><td style="text-align:left">Elasticidad ~1: revenue plano. El corte se autofinancia pero no gana. (España.)</td></tr>
+      <tr><td class="mn" style="color:var(--pink)">Volume rojo + Price verde</td><td style="text-align:left">Subiste precio: perdés órdenes pero ganás por ticket. Sano si el neto es positivo. (Marruecos.)</td></tr>
+      <tr><td class="mn" style="color:var(--pink)">Volume chico + Price muy rojo</td><td style="text-align:left">⚠ Corte de precio que NO trajo demanda: estás regalando margen. A investigar.</td></tr>
+    </tbody>
+  </table>
+  <p class="txt">Regla de oro: <strong>Volume te dice si la demanda respondió; Price te dice cuánto ticket cediste.</strong> El neto (ΔR%) dice quién ganó, pero la <em>forma</em> de las dos flechas es la que cuenta la historia.</p>
+</div>
+
+<!-- S8 -->
+<div class="section" id="s8">
+  <span class="section-num">Sección 8</span>
+  <h2 class="section-title">Qué NO es este análisis</h2>
+  <ul class="txt">
+    <li><strong>No es causal.</strong> El waterfall describe qué pasó (más órdenes, menos ticket), no prueba que el precio lo causó. Estacionalidad, campañas o competencia pueden estar de fondo. Para causalidad está la lectura vs. control set del diseño.</li>
+    <li><strong>El bucket Price mezcla tres cosas:</strong> cambio de tarifa de lista, mix de moneda y mix de tramo (días). Todo lo que mueva el AOV cae ahí. No es "solo el precio de lista".</li>
+    <li><strong>Depende de la ventana.</strong> pre y post son promedios diarios sobre sus ventanas; ventanas post cortas (&lt;7 días) no son comparables por el efecto día-de-semana. Para los cerrados (CAN/USA/CHE) la ventana post está congelada en el rollback, así que es estable.</li>
+    <li><strong>El margen es un supuesto</strong> hasta la fase 2. El lado profit hoy asume el GM% de diseño; sirve para dimensionar, no para reportar margen real.</li>
+  </ul>
+</div>
+
+<div class="bottom">
+  <p><strong>En una línea:</strong> el revenue de un experimento se mueve por dos palancas — cuántas órdenes y a qué ticket. El waterfall las separa en euros, valuando el cambio de órdenes al precio viejo y el cambio de ticket al volumen nuevo, de modo que siempre suman el total. El lado profit es lo mismo escalado por el margen, con Cost esperando el dato de costo real.</p>
+  <div class="bottom-sig">Pricing <span class="pink">·</span> PPC-108 · valores al 26-ago-2026</div>
+</div>
+
+</div>
+</body>
+</html>
